@@ -35,7 +35,7 @@ export function TopNav() {
           <img
             src={gaudiumLogo}
             alt="The Gaudium School"
-            className="hidden h-8 w-auto brightness-200 sm:block"
+            className="hidden h-8 w-auto rounded-md bg-foreground px-2 py-1 sm:block"
           />
         </Link>
 

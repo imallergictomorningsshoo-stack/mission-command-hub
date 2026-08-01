@@ -90,7 +90,7 @@ function ConnectionPage() {
         <div className="flex items-center gap-5">
           <img src={navarsLogo} alt="Navars Space Lab" className="h-8 w-auto brightness-150" />
           <span className="h-9 w-px bg-border" />
-          <img src={gaudiumLogo} alt="The Gaudium School" className="h-10 w-auto brightness-200" />
+          <img src={gaudiumLogo} alt="The Gaudium School" className="h-11 w-auto rounded-md bg-foreground px-2 py-1" />
         </div>
       </div>
 
