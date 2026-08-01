@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Radio, Rocket, BarChart3, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { StatusChip } from "./status-chip";
+import navarsLogo from "@/assets/navars-space-lab.png";
+import gaudiumLogo from "@/assets/gaudium-school.png";
 
 const tabs = [
   { to: "/", label: "Connection", icon: Radio },
@@ -24,15 +26,17 @@ export function TopNav() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-8 px-6">
         <Link to="/" className="flex items-center gap-3">
-          <span className="relative grid size-9 place-items-center rounded-xl border border-signal/30 bg-signal/10">
-            <Rocket className="size-4 text-signal" strokeWidth={2} />
-          </span>
-          <span className="leading-tight">
-            <span className="block font-display text-sm font-semibold tracking-tight">
-              TEAM BHOONIDI
-            </span>
-            <span className="label-caps block text-[10px]">MRCC · India</span>
-          </span>
+          <img
+            src={navarsLogo}
+            alt="Navars Space Lab"
+            className="h-7 w-auto brightness-150 saturate-150"
+          />
+          <span className="hidden h-8 w-px bg-border sm:block" />
+          <img
+            src={gaudiumLogo}
+            alt="The Gaudium School"
+            className="hidden h-8 w-auto brightness-200 sm:block"
+          />
         </Link>
 
         <nav className="flex items-center gap-1">
