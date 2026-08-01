@@ -60,8 +60,8 @@ export function TopNav() {
           <span className="numeric hidden text-xs text-muted-foreground lg:block">
             UTC {utc}
           </span>
-          <StatusChip tone="online" pulse>
-            Link Active
+          <StatusChip tone="info" pulse>
+            GCS v2.4.0
           </StatusChip>
         </div>
       </div>
