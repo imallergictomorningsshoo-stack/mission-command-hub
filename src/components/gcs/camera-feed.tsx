@@ -11,7 +11,7 @@ export function CameraFeed({
   online = true,
 }: {
   title: string;
-  hint?: string;
+  hint?: string | undefined;
   mode: "nir" | "gray";
   resolution: string;
   fps: string;
@@ -21,7 +21,7 @@ export function CameraFeed({
     <Panel>
       <PanelHeader
         title={title}
-        hint={hint}
+        {...(hint ? { hint } : {})}
         right={
           <StatusChip tone={online ? "online" : "idle"} pulse={online}>
             {online ? "Streaming" : "Standby"}
