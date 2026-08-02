@@ -12,7 +12,7 @@ import {
   ArrowDownUp,
   Check,
   Plug,
-  Camera,
+
 } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { StatusChip } from "@/components/gcs/status-chip";
@@ -143,24 +143,8 @@ function ConnectionPage() {
             </div>
           </Panel>
 
-          <Panel>
-            <PanelHeader title="Payload Cameras" hint="Optics" />
-            <div className="grid grid-cols-2 gap-3 p-4">
-              {["NIR", "Grayscale"].map((cam) => (
-                <div
-                  key={cam}
-                  className="rounded-xl border border-border bg-panel-2/50 px-3 py-3 text-center"
-                >
-                  <Camera className="mx-auto size-4 text-signal" strokeWidth={1.7} />
-                  <p className="numeric mt-2 text-xs">{cam}</p>
-                  <p className="label-caps mt-1 text-[9px]">
-                    {connected ? "Online" : "Standby"}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Panel>
         </div>
+
 
         {/* CENTER — connection console */}
         <Panel className="overflow-hidden">
