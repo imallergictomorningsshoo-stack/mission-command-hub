@@ -5,6 +5,7 @@ import { TelemetryCard } from "@/components/gcs/telemetry-card";
 import { TelemetryChart } from "@/components/gcs/telemetry-chart";
 import { TelemetryTable } from "@/components/gcs/telemetry-table";
 import { AlertBanner } from "@/components/gcs/alert-banner";
+import { CameraFeed } from "@/components/gcs/camera-feed";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { DataRow } from "@/components/gcs/summary-card";
 import { packets, latest } from "@/lib/telemetry";
@@ -129,6 +130,23 @@ function MissionControl() {
             />
           </div>
         </Panel>
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-2">
+        <CameraFeed
+          title="Payload Camera A"
+          hint="Near-Infrared"
+          mode="nir"
+          resolution="1280×720"
+          fps="12 fps"
+        />
+        <CameraFeed
+          title="Payload Camera B"
+          hint="Grayscale"
+          mode="gray"
+          resolution="1280×720"
+          fps="15 fps"
+        />
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
