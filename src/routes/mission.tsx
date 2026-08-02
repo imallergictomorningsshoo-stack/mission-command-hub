@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { Gauge, Mountain, Thermometer, Compass } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { TelemetryCard } from "@/components/gcs/telemetry-card";
@@ -8,7 +9,22 @@ import { AlertBanner } from "@/components/gcs/alert-banner";
 import { CameraFeed } from "@/components/gcs/camera-feed";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { DataRow } from "@/components/gcs/summary-card";
-import { packets, latest } from "@/lib/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
+
+const mapFlightModeToState = (mode: string) => {
+  switch (mode.toLowerCase()) {
+    case "ascent":
+      return "ASCENT"
+    case "apogee":
+      return "APOGEE"
+    case "descent":
+      return "DESCENT"
+    case "landed":
+      return "LANDED"
+    default:
+      return "IDLE"
+  }
+}
 
 export const Route = createFileRoute("/mission")({
   head: () => ({
@@ -30,8 +46,33 @@ export const Route = createFileRoute("/mission")({
 });
 
 function MissionControl() {
-  const prev = packets[packets.length - 2]!;
-  const recent = [...packets].slice(-14).reverse();
+  const { telemetry, history, connection, flightMode } = useTelemetry();
+
+  const recent = useMemo(() => {
+    return history.map((entry) => ({
+      id: entry.id,
+      time: entry.time,
+      altitude: entry.altitude,
+      pressure: entry.pressure,
+      temperature: entry.temperature,
+      tilt: Math.sqrt(entry.pitch ** 2 + entry.roll ** 2),
+      voltage: entry.battery,
+      state: mapFlightModeToState(entry.flightMode),
+    }))
+  }, [history]);
+
+  const latest = recent[0] ?? {
+    id: 0,
+    time: "--:--",
+    altitude: 0,
+    pressure: 0,
+    temperature: 0,
+    tilt: 0,
+    voltage: telemetry.battery,
+    state: mapFlightModeToState(telemetry.flightMode),
+  };
+
+  const prev = recent[1] ?? latest;
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-8">
@@ -150,26 +191,26 @@ function MissionControl() {
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <TelemetryChart title="Altitude vs Time" unit="metres AGL" dataKey="altitude" data={packets} />
+        <TelemetryChart title="Altitude vs Time" unit="metres AGL" dataKey="altitude" data={recent} />
         <TelemetryChart
           title="Pressure vs Time"
           unit="hectopascals"
           dataKey="pressure"
-          data={packets}
+          data={recent}
           color="var(--chart-2)"
         />
         <TelemetryChart
           title="Temperature vs Time"
           unit="degrees celsius"
           dataKey="temperature"
-          data={packets}
+          data={recent}
           color="var(--chart-4)"
         />
         <TelemetryChart
           title="Tilt vs Time"
           unit="degrees"
           dataKey="tilt"
-          data={packets}
+          data={recent}
           color="var(--chart-3)"
         />
       </div>

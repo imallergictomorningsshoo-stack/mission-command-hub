@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Cable,
   Loader2,
@@ -18,6 +18,7 @@ import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { GcsButton } from "@/components/gcs/gcs-button";
 import { DataRow } from "@/components/gcs/summary-card";
+import { useTelemetry } from "@/context/TelemetryContext";
 import navarsLogo from "@/assets/navars-space-lab.png";
 import gaudiumLogo from "@/assets/gaudium-school.png";
 
@@ -74,10 +75,17 @@ const linkReadouts = [
 
 function ConnectionPage() {
   const navigate = useNavigate();
+  const { connection, setConnection } = useTelemetry();
   const [port, setPort] = useState(ports[0]!.id);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
 
-  const connected = status === "connected";
+  useEffect(() => {
+    if (connection === "Receiving") {
+      navigate({ to: "/mission" });
+    }
+  }, [connection, navigate]);
+
+  const connected = status === "connected" || connection === "Receiving";
   const activePort = ports.find((p) => p.id === port)!;
 
   return (
