@@ -113,7 +113,7 @@ const TelemetryContext = createContext<TelemetryContextProps | undefined>(undefi
 export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [telemetry, setTelemetry] = useState<TelemetrySnapshot>(initialTelemetry)
   const [history, setHistory] = useState<PacketEntry[]>(initialHistory)
-  const [connection, setConnection] = useState<ConnectionState>('Receiving')
+  const [connection, setConnection] = useState<ConnectionState>('Disconnected')
   const [flightMode, setFlightMode] = useState<string>('Descent')
 
   useEffect(() => {
