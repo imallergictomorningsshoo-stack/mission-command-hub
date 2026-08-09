@@ -74,11 +74,10 @@ const linkReadouts = [
 
 function ConnectionPage() {
   const navigate = useNavigate();
-  const [port, setPort] = useState(ports[0]!.id);
   const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
 
   const connected = status === "connected";
-  const activePort = ports.find((p) => p.id === port)!;
+  const activePort = ports[0]!;
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-6">
@@ -185,34 +184,6 @@ function ConnectionPage() {
                   ))}
                 </div>
                 <p className="label-caps mt-5 text-ok">All systems nominal</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="label-caps" htmlFor="port">
-                Serial Port
-              </label>
-              <div className="grid gap-2">
-                {ports.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setPort(p.id)}
-                    className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
-                      port === p.id
-                        ? "border-signal/40 bg-signal/10 shadow-[0_0_24px_-12px_var(--signal)]"
-                        : "border-border bg-panel/40 hover:border-signal/25 hover:bg-signal/5"
-                    }`}
-                  >
-                    <span>
-                      <span className="numeric block text-sm">{p.id}</span>
-                      <span className="block text-xs text-muted-foreground">{p.desc}</span>
-                    </span>
-                    <Cable
-                      className={`size-4 ${port === p.id ? "text-signal" : "text-muted-foreground"}`}
-                      strokeWidth={1.7}
-                    />
-                  </button>
-                ))}
               </div>
             </div>
 

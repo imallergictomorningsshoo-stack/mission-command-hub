@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Radio, Rocket, BarChart3, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { StatusChip } from "./status-chip";
+import { ThemeToggle } from "./theme-toggle";
 import navarsLogo from "@/assets/navars-space-lab.png";
 import gaudiumLogo from "@/assets/gaudium-school.png";
 
@@ -64,6 +65,7 @@ export function TopNav() {
           <span className="numeric hidden text-xs text-muted-foreground lg:block">
             UTC {utc}
           </span>
+          <ThemeToggle />
           <StatusChip tone="info" pulse>
             GCS v2.4.0
           </StatusChip>
