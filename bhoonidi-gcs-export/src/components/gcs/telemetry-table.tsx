@@ -15,7 +15,16 @@ export function TelemetryTable({ rows }: { rows: Packet[] }) {
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-border/70">
-            {["PKT", "MET", "ALT (m)", "PRES (hPa)", "TEMP (°C)", "TILT (°)", "VBAT (V)", "STATE"].map((h) => (
+            {[
+              "PKT",
+              "MET",
+              "ALT (m)",
+              "PRES (hPa)",
+              "TEMP (°C)",
+              "TILT (°)",
+              "VBAT (V)",
+              "STATE",
+            ].map((h) => (
               <th key={h} className="label-caps px-5 py-2.5 font-normal whitespace-nowrap">
                 {h}
               </th>
@@ -37,7 +46,12 @@ export function TelemetryTable({ rows }: { rows: Packet[] }) {
               <td className="numeric px-5 py-2.5 text-xs">{p.temperature.toFixed(2)}</td>
               <td className="numeric px-5 py-2.5 text-xs">{p.tilt.toFixed(1)}</td>
               <td className="numeric px-5 py-2.5 text-xs">{p.voltage.toFixed(2)}</td>
-              <td className={cn("numeric px-5 py-2.5 text-[11px] tracking-widest", stateTone[p.state])}>
+              <td
+                className={cn(
+                  "numeric px-5 py-2.5 text-[11px] tracking-widest",
+                  stateTone[p.state],
+                )}
+              >
                 {p.state}
               </td>
             </tr>

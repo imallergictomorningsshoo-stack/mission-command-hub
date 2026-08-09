@@ -31,11 +31,7 @@ export function TelemetryChart({
       <PanelHeader
         title={title}
         hint={unit}
-        right={
-          <span className="numeric text-xs text-muted-foreground">
-            {data.length} pts
-          </span>
-        }
+        right={<span className="numeric text-xs text-muted-foreground">{data.length} pts</span>}
       />
       <div className="px-2 py-4" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -49,14 +45,22 @@ export function TelemetryChart({
             <CartesianGrid stroke="var(--grid)" strokeDasharray="2 6" vertical={false} />
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
+              tick={{
+                fontSize: 10,
+                fill: "var(--muted-foreground)",
+                fontFamily: "var(--font-mono)",
+              }}
               tickLine={false}
               axisLine={false}
               minTickGap={44}
             />
             <YAxis
               width={44}
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
+              tick={{
+                fontSize: 10,
+                fill: "var(--muted-foreground)",
+                fontFamily: "var(--font-mono)",
+              }}
               tickLine={false}
               axisLine={false}
               domain={["auto", "auto"]}

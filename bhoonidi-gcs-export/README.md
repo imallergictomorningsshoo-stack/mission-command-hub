@@ -7,6 +7,7 @@ This application is used by the ground team to monitor a CanSat during flight. T
 Overall Design
 
 Create a modern, premium interface inspired by:
+
 - NASA Mission Control
 - SpaceX mission software
 - Modern aircraft cockpit displays
@@ -15,6 +16,7 @@ Create a modern, premium interface inspired by:
 - Vercel aesthetics
 
 Use:
+
 - Dark theme
 - Deep navy and charcoal backgrounds
 - Cyan, electric blue and subtle teal highlights
@@ -28,6 +30,7 @@ Use:
 - Highly readable UI
 
 Avoid:
+
 - Bright rainbow colours
 - Corporate business dashboards
 - Purple gradients
@@ -42,6 +45,7 @@ Navigation
 Use a persistent horizontal top navigation bar.
 
 Navigation Tabs:
+
 - 🛰 Connection
 - 🚀 Mission Control
 - 📊 Post-Mission Analysis
@@ -54,6 +58,7 @@ Page 1 — Connection
 Create a clean, professional connection screen.
 
 Include:
+
 - Team Bhoonidi logo placeholder
 - Malaysian Rocket Competition title
 - Ground Station connection card
@@ -70,27 +75,32 @@ Page 2 — Mission Control
 This should be the primary page and the visual centerpiece of the application.
 
 Include large telemetry cards displaying:
+
 - Altitude
 - Pressure
 - Temperature
 - Tilt
 
 Mission Information:
+
 - Mission Timer
 - Packet Counter
 - Last Packet Received Timestamp
 - Ground Station Connection Status
 
 Live Charts:
+
 - Altitude vs Time
 - Pressure vs Time
 - Temperature vs Time
 - Tilt vs Time
 
 Telemetry Log:
+
 - Live telemetry table underneath the charts
 
 Alerts Section:
+
 - Telemetry Lost
 - Weak Signal
 - Connection Restored
@@ -103,6 +113,7 @@ Purpose:
 Review and analyse completed mission data.
 
 Include:
+
 - Flight Summary
 - Maximum Altitude
 - Average Temperature
@@ -119,9 +130,11 @@ Use a clean analytical layout designed for engineers reviewing mission performan
 Page 4 — Export
 
 Include:
+
 - Mission Summary Card
 
 Export options:
+
 - Export CSV
 - Export JSON (future placeholder)
 - Export PDF Report (future placeholder)
@@ -131,6 +144,7 @@ The page should be simple, elegant, and professional.
 Reusable Components
 
 Create premium reusable UI components including:
+
 - Navigation Bar
 - Telemetry Cards
 - Status Chips
@@ -145,6 +159,7 @@ User Experience
 The application should feel smooth and polished.
 
 Use:
+
 - Subtle hover animations
 - Soft card elevation
 - Smooth transitions

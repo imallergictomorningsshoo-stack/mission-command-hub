@@ -66,7 +66,10 @@ function ExportPage() {
             <DataRow label="Mission ID" value="MRCC-BH-F01" />
             <DataRow label="Date" value="2026-08-01" />
             <DataRow label="Duration" value={stats.duration} />
-            <DataRow label="Packets" value={`${stats.packetsReceived} / ${stats.packetsExpected}`} />
+            <DataRow
+              label="Packets"
+              value={`${stats.packetsReceived} / ${stats.packetsExpected}`}
+            />
           </div>
           <div>
             <DataRow label="Max Altitude" value={`${stats.maxAltitude.toFixed(1)} m`} />
@@ -79,10 +82,7 @@ function ExportPage() {
 
       <div className="mt-5 grid gap-4">
         {options.map(({ icon: Icon, title, detail, action, ready }) => (
-          <Panel
-            key={title}
-            className="flex flex-wrap items-center justify-between gap-4 p-5"
-          >
+          <Panel key={title} className="flex flex-wrap items-center justify-between gap-4 p-5">
             <div className="flex items-center gap-4">
               <span
                 className={`grid size-11 place-items-center rounded-xl border ${

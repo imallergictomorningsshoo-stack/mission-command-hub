@@ -12,7 +12,6 @@ import {
   ArrowDownUp,
   Check,
   Plug,
-
 } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { StatusChip } from "@/components/gcs/status-chip";
@@ -89,7 +88,11 @@ function ConnectionPage() {
         <div className="flex items-center gap-5">
           <img src={navarsLogo} alt="Navars Space Lab" className="h-8 w-auto brightness-150" />
           <span className="h-9 w-px bg-border" />
-          <img src={gaudiumLogo} alt="The Gaudium School" className="h-11 w-auto rounded-md bg-foreground px-2 py-1" />
+          <img
+            src={gaudiumLogo}
+            alt="The Gaudium School"
+            className="h-11 w-auto rounded-md bg-foreground px-2 py-1"
+          />
         </div>
       </div>
 
@@ -141,9 +144,7 @@ function ConnectionPage() {
               <Rocket className="ml-auto size-9 text-signal/70" strokeWidth={1.3} />
             </div>
           </Panel>
-
         </div>
-
 
         {/* CENTER — connection console */}
         <Panel className="overflow-hidden">
@@ -195,11 +196,7 @@ function ConnectionPage() {
                 }}
                 disabled={status !== "idle"}
               >
-                {status === "connecting" ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Cable />
-                )}
+                {status === "connecting" ? <Loader2 className="animate-spin" /> : <Cable />}
                 {connected ? "Link Established" : "Connect"}
               </GcsButton>
               <GcsButton variant="outline" onClick={() => setStatus("idle")}>

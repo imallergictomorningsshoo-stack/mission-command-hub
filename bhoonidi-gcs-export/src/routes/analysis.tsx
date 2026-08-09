@@ -83,7 +83,13 @@ function AnalysisPage() {
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid gap-5 lg:grid-cols-2">
-          <TelemetryChart title="Altitude Profile" unit="metres AGL" dataKey="altitude" data={packets} height={220} />
+          <TelemetryChart
+            title="Altitude Profile"
+            unit="metres AGL"
+            dataKey="altitude"
+            data={packets}
+            height={220}
+          />
           <TelemetryChart
             title="Pressure Trend"
             unit="hectopascals"
@@ -140,8 +146,8 @@ function AnalysisPage() {
             <div className="space-y-3 px-5 py-4">
               <p className="text-xs leading-relaxed text-muted-foreground">
                 Pressure decreased monotonically through ascent at a mean rate of
-                <span className="numeric text-foreground"> 1.19 hPa/s</span>, inverting within
-                two packets of apogee. The recovery curve tracks the barometric model to within
+                <span className="numeric text-foreground"> 1.19 hPa/s</span>, inverting within two
+                packets of apogee. The recovery curve tracks the barometric model to within
                 <span className="numeric text-foreground"> ±0.42 hPa</span>, indicating a healthy
                 sensor with no saturation events.
               </p>

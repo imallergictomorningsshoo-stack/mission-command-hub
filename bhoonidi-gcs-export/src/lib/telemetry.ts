@@ -42,7 +42,15 @@ export const packets: Packet[] = Array.from({ length: 120 }, (_, i) => {
     Math.sin(i / 2) * 2.2
   ).toFixed(1);
   const state: Packet["state"] =
-    i === 0 ? "IDLE" : x < 0.4 ? "ASCENT" : Math.abs(i - apogee * 0.42) < 3 ? "APOGEE" : x < 0.97 ? "DESCENT" : "LANDED";
+    i === 0
+      ? "IDLE"
+      : x < 0.4
+        ? "ASCENT"
+        : Math.abs(i - apogee * 0.42) < 3
+          ? "APOGEE"
+          : x < 0.97
+            ? "DESCENT"
+            : "LANDED";
   return {
     id: i + 1,
     t,

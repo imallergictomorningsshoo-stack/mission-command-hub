@@ -62,9 +62,7 @@ export function TopNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-4">
-          <span className="numeric hidden text-xs text-muted-foreground lg:block">
-            UTC {utc}
-          </span>
+          <span className="numeric hidden text-xs text-muted-foreground lg:block">UTC {utc}</span>
           <ThemeToggle />
           <StatusChip tone="info" pulse>
             GCS v2.4.0

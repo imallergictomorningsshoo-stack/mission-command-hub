@@ -11,7 +11,8 @@ export const gcsButtonVariants = cva(
         outline:
           "border border-border bg-panel/50 text-foreground hover:border-signal/40 hover:bg-signal/10 hover:text-signal",
         ghost: "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-        danger: "border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20",
+        danger:
+          "border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20",
       },
       size: {
         sm: "h-9 px-3.5",

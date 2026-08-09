@@ -146,7 +146,6 @@ function MissionControl() {
             </div>
           </div>
         </Panel>
-
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
@@ -170,7 +169,11 @@ function MissionControl() {
         <PanelHeader
           title="Telemetry Log"
           hint="Live Stream"
-          right={<StatusChip tone="online" pulse>Receiving</StatusChip>}
+          right={
+            <StatusChip tone="online" pulse>
+              Receiving
+            </StatusChip>
+          }
         />
         <TelemetryTable rows={recent} />
       </Panel>

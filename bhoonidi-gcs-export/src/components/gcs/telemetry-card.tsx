@@ -30,7 +30,13 @@ export function TelemetryCard({
       <div
         className={cn(
           "pointer-events-none absolute -top-16 -right-10 size-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-40",
-          accent === "warn" ? "bg-warn" : accent === "ok" ? "bg-ok" : accent === "accent" ? "bg-accent" : "bg-signal",
+          accent === "warn"
+            ? "bg-warn"
+            : accent === "ok"
+              ? "bg-ok"
+              : accent === "accent"
+                ? "bg-accent"
+                : "bg-signal",
         )}
       />
       <div className="flex items-center justify-between">

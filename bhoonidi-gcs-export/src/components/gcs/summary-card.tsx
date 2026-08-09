@@ -14,7 +14,9 @@ export function SummaryStat({
   className?: string;
 }) {
   return (
-    <div className={cn("glass rounded-2xl p-5 transition-colors hover:border-signal/25", className)}>
+    <div
+      className={cn("glass rounded-2xl p-5 transition-colors hover:border-signal/25", className)}
+    >
       <span className="label-caps">{label}</span>
       <div className="mt-4 flex items-baseline gap-1.5">
         <span className="numeric text-3xl leading-none font-semibold">{value}</span>
