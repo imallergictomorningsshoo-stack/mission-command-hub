@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 type Tone = "online" | "offline" | "warn" | "idle" | "info";
 
 const tones: Record<Tone, { dot: string; text: string; ring: string }> = {
-  online: { dot: "bg-ok", text: "text-ok", ring: "border-ok/30 bg-ok/10" },
-  offline: { dot: "bg-destructive", text: "text-destructive", ring: "border-destructive/30 bg-destructive/10" },
-  warn: { dot: "bg-warn", text: "text-warn", ring: "border-warn/30 bg-warn/10" },
+  online: { dot: "bg-signal", text: "text-signal", ring: "border-signal/30 bg-signal/10" },
+  offline: { dot: "bg-muted-foreground", text: "text-muted-foreground", ring: "border-border bg-muted/40" },
+  warn: { dot: "bg-signal", text: "text-signal", ring: "border-signal/30 bg-signal/10" },
   idle: { dot: "bg-muted-foreground", text: "text-muted-foreground", ring: "border-border bg-muted/40" },
   info: { dot: "bg-signal", text: "text-signal", ring: "border-signal/30 bg-signal/10" },
 };

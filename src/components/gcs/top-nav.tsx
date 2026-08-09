@@ -27,15 +27,15 @@ export function TopNav() {
       <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-8 px-6">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={navarsLogo}
-            alt="Navars Space Lab"
-            className="h-7 w-auto brightness-150 saturate-150"
+            src={gaudiumLogo}
+            alt="The Gaudium School"
+            className="hidden h-9 w-auto rounded-md bg-foreground px-2 py-1 sm:block"
           />
           <span className="hidden h-8 w-px bg-border sm:block" />
           <img
-            src={gaudiumLogo}
-            alt="The Gaudium School"
-            className="hidden h-8 w-auto rounded-md bg-foreground px-2 py-1 sm:block"
+            src={navarsLogo}
+            alt="Navars Space Lab"
+            className="h-7 w-auto brightness-150 saturate-150"
           />
         </Link>
 

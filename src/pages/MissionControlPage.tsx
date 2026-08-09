@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { Gauge, Mountain, Thermometer, Compass } from "lucide-react";
+import { Gauge, Mountain, Thermometer, Compass, Bell } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { TelemetryCard } from "@/components/gcs/telemetry-card";
-import { TelemetryChart } from "@/components/gcs/telemetry-chart";
 import { TelemetryTable } from "@/components/gcs/telemetry-table";
 import { AlertBanner } from "@/components/gcs/alert-banner";
 import { CameraFeed } from "@/components/gcs/camera-feed";
@@ -97,14 +96,6 @@ export function MissionControlPage() {
           </div>
         </Panel>
 
-        <Panel>
-          <PanelHeader title="Alerts" hint="Event Log" right={<StatusChip tone="warn">2 Active</StatusChip>} />
-          <div className="space-y-2.5 p-4">
-            <AlertBanner level="critical" title="Telemetry Lost" detail="No packets received for 4.0 s — downlink gap during descent." timestamp="14:31:22" />
-            <AlertBanner level="warning" title="Weak Signal" detail="RSSI dropped to −91 dBm. Check antenna alignment." timestamp="14:31:48" />
-            <AlertBanner level="resolved" title="Connection Restored" detail="Link re-acquired. Packet sequence resynchronised at #0114." timestamp="14:31:56" />
-          </div>
-        </Panel>
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
@@ -112,11 +103,24 @@ export function MissionControlPage() {
         <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" resolution="1280×720" fps="15 fps" />
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <TelemetryChart title="Altitude vs Time" unit="metres AGL" dataKey="altitude" data={recent as any} />
-        <TelemetryChart title="Pressure vs Time" unit="hectopascals" dataKey="pressure" data={recent as any} color="var(--chart-2)" />
-        <TelemetryChart title="Temperature vs Time" unit="degrees celsius" dataKey="temperature" data={recent as any} color="var(--chart-4)" />
-        <TelemetryChart title="Tilt vs Time" unit="degrees" dataKey="tilt" data={recent as any} color="var(--chart-3)" />
+      <div className="fixed right-6 top-24 z-50 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border/80 bg-background/80 p-3 shadow-[0_20px_48px_-20px_rgba(15,23,42,0.8)] backdrop-blur-xl">
+        <div className="mb-2 flex items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="grid size-8 place-items-center rounded-xl border border-signal/30 bg-signal/10 text-signal">
+              <Bell className="size-4" strokeWidth={1.8} />
+            </span>
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Mission alerts</p>
+              <p className="text-sm font-medium">Live event log</p>
+            </div>
+          </div>
+          <StatusChip tone="info">2 Active</StatusChip>
+        </div>
+        <div className="space-y-2.5">
+          <AlertBanner level="critical" title="Telemetry Lost" detail="No packets received for 4.0 s — downlink gap during descent." timestamp="14:31:22" />
+          <AlertBanner level="warning" title="Weak Signal" detail="RSSI dropped to −91 dBm. Check antenna alignment." timestamp="14:31:48" />
+          <AlertBanner level="resolved" title="Connection Restored" detail="Link re-acquired. Packet sequence resynchronised at #0114." timestamp="14:31:56" />
+        </div>
       </div>
 
       <Panel className="mt-5">

@@ -8,12 +8,6 @@ import navarsLogo from "@/assets/navars-space-lab.png";
 import gaudiumLogo from "@/assets/gaudium-school.png";
 import { useNavigate } from "@tanstack/react-router";
 
-const ports = [
-  { id: "COM3", desc: "SiLabs CP2102 · 57600 baud" },
-  { id: "COM5", desc: "FTDI FT232R · 115200 baud" },
-  { id: "/dev/ttyUSB0", desc: "XBee Pro S2C · 9600 baud" },
-];
-
 const stationStats = [
   { icon: ShieldCheck, label: "System Health", value: "100", unit: "%", tone: "text-ok" },
   { icon: SignalHigh, label: "Signal Strength", value: "−63", unit: "dBm", tone: "text-signal" },
@@ -34,8 +28,7 @@ const linkReadouts = [
 
 export function ConnectionPage() {
   const navigate = useNavigate();
-  const { connection, setConnection } = useTelemetry();
-  const [port, setPort] = useState(ports[0]!.id);
+  const { connection } = useTelemetry();
   const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
 
   useEffect(() => {
@@ -45,7 +38,6 @@ export function ConnectionPage() {
   }, [connection, navigate]);
 
   const connected = status === "connected" || connection === "Receiving";
-  const activePort = ports.find((p) => p.id === port)!;
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-6">
@@ -55,9 +47,9 @@ export function ConnectionPage() {
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Ground Station Connection</h1>
         </div>
         <div className="flex items-center gap-5">
-          <img src={navarsLogo} alt="Navars Space Lab" className="h-8 w-auto brightness-150" />
+          <img src={gaudiumLogo} alt="The Gaudium School" className="h-12 w-auto rounded-md bg-foreground px-2 py-1" />
           <span className="h-9 w-px bg-border" />
-          <img src={gaudiumLogo} alt="The Gaudium School" className="h-11 w-auto rounded-md bg-foreground px-2 py-1" />
+          <img src={navarsLogo} alt="Navars Space Lab" className="h-8 w-auto brightness-150" />
         </div>
       </div>
 
@@ -109,7 +101,7 @@ export function ConnectionPage() {
               <div className="relative">
                 <span className="label-caps">Downlink Handshake</span>
                 <p className="numeric mt-3 text-5xl font-semibold text-signal">{connected ? "LINKED" : status === "connecting" ? "SYNC…" : "T− 00:42"}</p>
-                <p className="mt-3 text-xs text-muted-foreground">{connected ? `Telemetry stream locked · ${activePort.id} · 1 Hz` : "Checking systems…"}</p>
+                <p className="mt-3 text-xs text-muted-foreground">{connected ? "Telemetry stream locked · 1 Hz" : "Checking systems…"}</p>
                 <div className="mx-auto mt-5 grid max-w-sm gap-1.5 text-left">
                   {checks.map((c) => (
                     <div key={c} className="flex items-center gap-2 text-xs">
@@ -120,29 +112,6 @@ export function ConnectionPage() {
                   ))}
                 </div>
                 <p className="label-caps mt-5 text-ok">All systems nominal</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="label-caps" htmlFor="port">
-                Serial Port
-              </label>
-              <div className="grid gap-2">
-                {ports.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setPort(p.id)}
-                    className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
-                      port === p.id ? "border-signal/40 bg-signal/10 shadow-[0_0_24px_-12px_var(--signal)]" : "border-border bg-panel/40 hover:border-signal/25 hover:bg-signal/5"
-                    }`}
-                  >
-                    <span>
-                      <span className="numeric block text-sm">{p.id}</span>
-                      <span className="block text-xs text-muted-foreground">{p.desc}</span>
-                    </span>
-                    <Cable className={`size-4 ${port === p.id ? "text-signal" : "text-muted-foreground"}`} strokeWidth={1.7} />
-                  </button>
-                ))}
               </div>
             </div>
 
@@ -193,7 +162,7 @@ export function ConnectionPage() {
                   <Plug className="size-4 text-signal" strokeWidth={1.7} />
                   <span className="text-sm font-medium">Ground console online</span>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">Use the serial port selector to pair the downlink before launch.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Ground console is ready to begin the mission handshake.</p>
               </div>
             </div>
           </Panel>

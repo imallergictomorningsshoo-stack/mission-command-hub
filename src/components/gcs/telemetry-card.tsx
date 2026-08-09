@@ -20,9 +20,9 @@ export function TelemetryCard({
 }) {
   const accentText = {
     signal: "text-signal",
-    accent: "text-accent",
-    warn: "text-warn",
-    ok: "text-ok",
+    accent: "text-signal",
+    warn: "text-signal",
+    ok: "text-signal",
   }[accent];
 
   return (
@@ -30,7 +30,7 @@ export function TelemetryCard({
       <div
         className={cn(
           "pointer-events-none absolute -top-16 -right-10 size-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-40",
-          accent === "warn" ? "bg-warn" : accent === "ok" ? "bg-ok" : accent === "accent" ? "bg-accent" : "bg-signal",
+          "bg-signal",
         )}
       />
       <div className="flex items-center justify-between">

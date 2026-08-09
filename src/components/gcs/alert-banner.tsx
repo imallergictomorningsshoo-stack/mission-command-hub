@@ -6,11 +6,11 @@ type Level = "critical" | "warning" | "resolved";
 const config = {
   critical: {
     icon: AlertTriangle,
-    ring: "border-destructive/35 bg-destructive/10",
-    text: "text-destructive",
+    ring: "border-signal/30 bg-signal/10",
+    text: "text-signal",
   },
-  warning: { icon: SignalLow, ring: "border-warn/35 bg-warn/10", text: "text-warn" },
-  resolved: { icon: ShieldCheck, ring: "border-ok/35 bg-ok/10", text: "text-ok" },
+  warning: { icon: SignalLow, ring: "border-signal/30 bg-signal/10", text: "text-signal" },
+  resolved: { icon: ShieldCheck, ring: "border-border bg-muted/40", text: "text-foreground" },
 } as const;
 
 export function AlertBanner({
