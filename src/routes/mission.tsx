@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Gauge, Mountain, Thermometer, Compass } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { TelemetryCard } from "@/components/gcs/telemetry-card";
-import { TelemetryChart } from "@/components/gcs/telemetry-chart";
 import { TelemetryTable } from "@/components/gcs/telemetry-table";
-import { AlertBanner } from "@/components/gcs/alert-banner";
+import { AlertPopup, type AlertKind } from "@/components/gcs/alert-popup";
 import { CameraFeed } from "@/components/gcs/camera-feed";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { DataRow } from "@/components/gcs/summary-card";
@@ -32,9 +32,49 @@ export const Route = createFileRoute("/mission")({
 function MissionControl() {
   const prev = packets[packets.length - 2]!;
   const recent = [...packets].slice(-14).reverse();
+  const [alert, setAlert] = useState<{
+    kind: AlertKind;
+    detail: string;
+    timestamp: string;
+  } | null>(null);
+
+  // Raise a popup only for telemetry loss or weak-signal conditions.
+  useEffect(() => {
+    const stamp = () => new Date().toISOString().slice(11, 19);
+    const t1 = setTimeout(
+      () =>
+        setAlert({
+          kind: "weak-signal",
+          detail: "RSSI dropped to −91 dBm. Check antenna alignment.",
+          timestamp: stamp(),
+        }),
+      4000,
+    );
+    const t2 = setTimeout(
+      () =>
+        setAlert({
+          kind: "telemetry-lost",
+          detail: "No packets received for 4.0 s — downlink gap during descent.",
+          timestamp: stamp(),
+        }),
+      12000,
+    );
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-8">
+      {alert ? (
+        <AlertPopup
+          kind={alert.kind}
+          detail={alert.detail}
+          timestamp={alert.timestamp}
+          onDismiss={() => setAlert(null)}
+        />
+      ) : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="label-caps">Live Flight · CANSAT-BH-01</span>
@@ -107,29 +147,6 @@ function MissionControl() {
           </div>
         </Panel>
 
-        <Panel>
-          <PanelHeader title="Alerts" hint="Event Log" right={<StatusChip tone="warn">2 Active</StatusChip>} />
-          <div className="space-y-2.5 p-4">
-            <AlertBanner
-              level="critical"
-              title="Telemetry Lost"
-              detail="No packets received for 4.0 s — downlink gap during descent."
-              timestamp="14:31:22"
-            />
-            <AlertBanner
-              level="warning"
-              title="Weak Signal"
-              detail="RSSI dropped to −91 dBm. Check antenna alignment."
-              timestamp="14:31:48"
-            />
-            <AlertBanner
-              level="resolved"
-              title="Connection Restored"
-              detail="Link re-acquired. Packet sequence resynchronised at #0114."
-              timestamp="14:31:56"
-            />
-          </div>
-        </Panel>
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
@@ -146,31 +163,6 @@ function MissionControl() {
           mode="gray"
           resolution="1280×720"
           fps="15 fps"
-        />
-      </div>
-
-      <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <TelemetryChart title="Altitude vs Time" unit="metres AGL" dataKey="altitude" data={packets} />
-        <TelemetryChart
-          title="Pressure vs Time"
-          unit="hectopascals"
-          dataKey="pressure"
-          data={packets}
-          color="var(--chart-2)"
-        />
-        <TelemetryChart
-          title="Temperature vs Time"
-          unit="degrees celsius"
-          dataKey="temperature"
-          data={packets}
-          color="var(--chart-4)"
-        />
-        <TelemetryChart
-          title="Tilt vs Time"
-          unit="degrees"
-          dataKey="tilt"
-          data={packets}
-          color="var(--chart-3)"
         />
       </div>
 
