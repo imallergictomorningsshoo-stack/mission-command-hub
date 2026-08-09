@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -130,11 +131,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  const showTopNav = location.pathname !== "/";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen">
-        <TopNav />
+      <div className="min-h-screen bg-black">
+        {showTopNav ? <TopNav /> : null}
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </div>
