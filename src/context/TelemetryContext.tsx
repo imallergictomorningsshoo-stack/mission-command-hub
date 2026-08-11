@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { PacketEntry, TelemetrySnapshot } from '@/lib/telemetryData'
 import { mapPacketToTelemetry, parseTelemetryCsv, resolveConnection } from '@/lib/telemetryData'
 import { LoraSerial, isLoRaSerialSupported } from '@/lib/LoraSerial'
@@ -115,6 +115,11 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [history, setHistory] = useState<PacketEntry[]>(initialHistory)
   const [connection, setConnection] = useState<ConnectionState>('Disconnected')
   const [flightMode, setFlightMode] = useState<string>('Descent')
+  const liveFeedEnabledRef = useRef(false)
+
+  useEffect(() => {
+    liveFeedEnabledRef.current = connection === 'Receiving' || connection === 'Stale'
+  }, [connection])
 
   useEffect(() => {
     let active = true
@@ -122,7 +127,7 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
     let serial: LoraSerial | null = null
 
     const applyPacket = (entry: PacketEntry) => {
-      if (!active) return
+      if (!active || !liveFeedEnabledRef.current) return
       const snapshot = mapPacketToTelemetry(entry)
       setTelemetry(snapshot)
       setConnection(resolveConnection(entry.packetLoss))
@@ -132,6 +137,7 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
 
     const loadCsv = async () => {
       try {
+        if (!liveFeedEnabledRef.current) return
         const response = await fetch('/telemetry.csv')
         if (!response.ok) throw new Error(`CSV request failed ${response.status}`)
         const csvText = await response.text()
@@ -144,9 +150,6 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
     }
 
-    void loadCsv()
-    const interval = window.setInterval(() => void loadCsv(), 1200)
-
     const initializeSerial = async () => {
       if (!isLoRaSerialSupported()) return
 
@@ -156,6 +159,7 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
           onStatusChange: (status) => {
             if (status === 'connected') {
               setConnection('Receiving')
+              liveFeedEnabledRef.current = true
             }
           },
         })
@@ -165,6 +169,8 @@ export const TelemetryProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
     }
 
+    void loadCsv()
+    const interval = window.setInterval(() => void loadCsv(), 1200)
     void initializeSerial()
 
     return () => {

@@ -32,10 +32,10 @@ export function ConnectionPage() {
   const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
 
   useEffect(() => {
-    if (connection === "Receiving") {
+    if (status === "connected" && connection === "Receiving") {
       navigate({ to: "/mission" });
     }
-  }, [connection, navigate]);
+  }, [connection, status, navigate]);
 
   const connected = status === "connected" || connection === "Receiving";
 
