@@ -61,7 +61,7 @@ function OverviewPage() {
       <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Tile label="Max Altitude" value={stats.maxAltitude.toFixed(1)} unit="m AGL" tone="signal" note="Apogee at T+01:38" />
         <Tile label="Flight Duration" value={stats.duration} note="Launch to touchdown" />
-        <Tile label="Packets" value={`${stats.packetsReceived}/${stats.packetsExpected}`} note="3.2 % loss" tone="online" />
+        <Tile label="Packets" value={`${stats.packetsReceived}/${stats.packetsExpected}`} note="3.2 % loss" tone="ok" />
         <Tile label="Battery" value={latest.voltage.toFixed(2)} unit="V" tone="warn" note="Discharge 0.24 V/min" />
       </div>
 

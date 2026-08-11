@@ -69,7 +69,7 @@ function PostFlightPage() {
         <Tile label="Flight Time" value={stats.duration} />
         <Tile label="Max Tilt" value={stats.maxTilt.toFixed(1)} unit="°" tone="warn" />
         <Tile label="Avg Temp" value={stats.avgTemperature.toFixed(1)} unit="°C" />
-        <Tile label="Recovery Distance" value="412" unit="m" tone="online" />
+        <Tile label="Recovery Distance" value="412" unit="m" tone="ok" />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
