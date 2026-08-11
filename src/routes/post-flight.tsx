@@ -56,7 +56,7 @@ function PostFlightPage() {
           <h1 className="mt-1.5 text-2xl font-semibold tracking-tight">Post-Flight Analysis</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <StatusChip tone="ok">Mission Success</StatusChip>
+          <StatusChip tone="online">Mission Success</StatusChip>
           <GcsButton variant="outline" size="sm">
             <Play />
             Replay Flight
@@ -69,7 +69,7 @@ function PostFlightPage() {
         <Tile label="Flight Time" value={stats.duration} />
         <Tile label="Max Tilt" value={stats.maxTilt.toFixed(1)} unit="°" tone="warn" />
         <Tile label="Avg Temp" value={stats.avgTemperature.toFixed(1)} unit="°C" />
-        <Tile label="Recovery Distance" value="412" unit="m" tone="ok" />
+        <Tile label="Recovery Distance" value="412" unit="m" tone="online" />
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -86,7 +86,7 @@ function PostFlightPage() {
 
         <div className="flex flex-col gap-4">
           <Panel>
-            <PanelHeader title="Mission Outcomes" hint="Objectives" right={<StatusChip tone="ok">5 / 6</StatusChip>} />
+            <PanelHeader title="Mission Outcomes" hint="Objectives" right={<StatusChip tone="online">5 / 6</StatusChip>} />
             <div className="px-5 py-3">
               {outcomes.map((o) => (
                 <div key={o.label} className="flex items-center gap-3 border-b border-border/50 py-2.5 last:border-0">
