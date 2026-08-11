@@ -36,41 +36,100 @@ export type TelemetrySnapshot = {
   flightMode: string
 }
 
+const toNumber = (value: string | undefined, fallback = 0): number => {
+  if (value === undefined || value === null || value === '') return fallback
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+const toBoolean = (value: string | undefined, fallback = true): boolean => {
+  if (value === undefined || value === null || value === '') return fallback
+  const normalized = value.toLowerCase().trim()
+  if (['true', '1', 'yes', 'on'].includes(normalized)) return true
+  if (['false', '0', 'no', 'off'].includes(normalized)) return false
+  return fallback
+}
+
+const parseCsvLine = (line: string): string[] => {
+  const values: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index]
+
+    if (char === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"'
+        index += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+      continue
+    }
+
+    if (char === ',' && !inQuotes) {
+      values.push(current.trim())
+      current = ''
+      continue
+    }
+
+    current += char
+  }
+
+  values.push(current.trim())
+  return values
+}
+
+const getFieldValue = (row: Record<string, string>, possibleKeys: string[], fallback = ''): string => {
+  for (const key of possibleKeys) {
+    const value = row[key]
+    if (value !== undefined && value !== '') return value
+  }
+  return fallback
+}
+
 export const parseTelemetryCsv = (csvText: string): PacketEntry[] => {
   const lines = csvText
-    .trim()
-    .split(/\r?\n/)
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => line.trim())
     .filter(Boolean)
 
   if (lines.length < 2) return []
 
-  return lines.slice(1).map((row, index) => {
-    const values = row.split(',').map((value) => value.trim())
-    const headerLine = lines[0].toLowerCase()
+  const header = parseCsvLine(lines[0]).map((value) => value.toLowerCase().trim())
+  const columns = header.filter(Boolean)
 
-    const time = values[0] || `00:${index}`
-    const packet = Number(values[1]) || index + 1
-    const temperature = Number(values[3] || values[1] || 0)
-    const pressure = Number(values[2] || values[1] || 0)
-    const altitude = Number(values[1] || values[0] || 0)
-    const tilt = Number(values[4] || values[3] || 0)
+  return lines.slice(1).flatMap((line, index) => {
+    const values = parseCsvLine(line)
+    const row: Record<string, string> = {}
 
-    const packetLoss = headerLine.includes('loss') ? Number(values[11] || 0) : 0
-    const gpsLock = headerLine.includes('gps') ? values[12] === 'true' : true
-    const sdLogging = headerLine.includes('sd') ? values[13] === 'true' : true
-    const flightMode = headerLine.includes('mode') ? values[14] || 'Telemetry' : 'Telemetry'
+    for (let i = 0; i < columns.length; i += 1) {
+      row[columns[i]] = values[i] ?? ''
+    }
 
-    const battery = Number(values[5] || 3.9)
-    const rssi = Number(values[6] || 80)
-    const humidity = Number(values[7] || 45)
-    const light = Number(values[8] || 120)
-    const pitch = Number(values[4] || tilt || 0)
-    const roll = Number(values[4] || tilt || 0)
+    const packet = toNumber(getFieldValue(row, ['packet', 'seq', 'pkt', 'packet_id'], String(index + 1)), index + 1)
+    const time = getFieldValue(row, ['time', 'timestamp', 'utc', 'received_at']) || new Date(Date.now() - index * 1000).toLocaleTimeString('en-GB', { hour12: false })
 
-    return {
+    const temperature = toNumber(getFieldValue(row, ['temperature', 'temp', 'temp_c']), 0)
+    const pressure = toNumber(getFieldValue(row, ['pressure', 'press', 'pressure_hpa']), 0)
+    const altitude = toNumber(getFieldValue(row, ['altitude', 'alt', 'altitude_m']), 0)
+    const battery = toNumber(getFieldValue(row, ['battery', 'vbat', 'voltage']), 3.9)
+    const rssi = toNumber(getFieldValue(row, ['rssi', 'signal']), 80)
+    const humidity = toNumber(getFieldValue(row, ['humidity']), 45)
+    const light = toNumber(getFieldValue(row, ['light', 'lux']), 120)
+    const pitch = toNumber(getFieldValue(row, ['pitch', 'tilt_x']), 0)
+    const roll = toNumber(getFieldValue(row, ['roll', 'tilt_y']), 0)
+    const packetLoss = toNumber(getFieldValue(row, ['packetloss', 'loss', 'packet_loss']), 0)
+    const gpsLock = toBoolean(getFieldValue(row, ['gpslock', 'gps_lock', 'gps']), true)
+    const sdLogging = toBoolean(getFieldValue(row, ['sdlogging', 'sd_logging', 'sd']), true)
+    const flightMode = getFieldValue(row, ['flightmode', 'mode', 'state', 'flight_mode'], 'Telemetry') || 'Telemetry'
+
+    return [{
       id: packet || index + 1,
       time,
-      packet,
+      packet: packet || index + 1,
       temperature,
       pressure,
       altitude,
@@ -84,7 +143,7 @@ export const parseTelemetryCsv = (csvText: string): PacketEntry[] => {
       gpsLock,
       sdLogging,
       flightMode,
-    }
+    }]
   })
 }
 
@@ -109,4 +168,65 @@ export const resolveConnection = (packetLoss: number): ConnectionState => {
   if (packetLoss > 6) return 'Disconnected'
   if (packetLoss > 3) return 'Stale'
   return 'Receiving'
+}
+
+export const serializeTelemetryCsv = (rows: PacketEntry[]): string => {
+  const header = [
+    'id',
+    'time',
+    'packet',
+    'temperature',
+    'pressure',
+    'altitude',
+    'battery',
+    'rssi',
+    'humidity',
+    'light',
+    'pitch',
+    'roll',
+    'packetLoss',
+    'gpsLock',
+    'sdLogging',
+    'flightMode',
+  ]
+
+  const lines = [
+    header.join(','),
+    ...rows.map((row) =>
+      [
+        row.id,
+        row.time,
+        row.packet,
+        row.temperature,
+        row.pressure,
+        row.altitude,
+        row.battery,
+        row.rssi,
+        row.humidity,
+        row.light,
+        row.pitch,
+        row.roll,
+        row.packetLoss,
+        row.gpsLock,
+        row.sdLogging,
+        row.flightMode,
+      ]
+        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+        .join(','),
+    ),
+  ]
+
+  return lines.join('\n')
+}
+
+export const downloadTelemetryCsv = (csvContent: string, filename = 'bhoonidi-mission-export.csv'): void => {
+  if (typeof window === 'undefined') return
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
 }

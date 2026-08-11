@@ -4,6 +4,7 @@ import { GcsButton } from "@/components/gcs/gcs-button";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { DataRow } from "@/components/gcs/summary-card";
 import { stats } from "@/lib/telemetry";
+import { downloadTelemetryCsv, serializeTelemetryCsv } from "@/lib/telemetryData";
 
 const options = [
   { icon: FileSpreadsheet, title: "Export CSV", detail: "Full packet log with all telemetry fields · ~18 KB", action: "Download CSV", ready: true },
@@ -12,6 +13,29 @@ const options = [
 ];
 
 export function ExportPage() {
+  const handleCsvExport = () => {
+    const rows = Array.from({ length: 120 }, (_, index) => ({
+      id: index + 1,
+      time: `T+${String(Math.floor(index / 60)).padStart(2, "0")}:${String(index % 60).padStart(2, "0")}`,
+      packet: index + 1,
+      temperature: 28 + Math.sin(index / 9) * 1.6,
+      pressure: 1012 - index * 0.25,
+      altitude: Math.max(0, 740 - index * 5.4),
+      battery: 8.4 - index * 0.004,
+      rssi: 90 - index * 0.12,
+      humidity: 46 + Math.sin(index / 7) * 4,
+      light: 120 + Math.sin(index / 4) * 30,
+      pitch: Math.sin(index / 5) * 8,
+      roll: Math.cos(index / 6) * 7,
+      packetLoss: 1.1 + (index % 7) * 0.2,
+      gpsLock: true,
+      sdLogging: true,
+      flightMode: index < 30 ? "ASCENT" : index < 80 ? "DESCENT" : "LANDED",
+    }));
+
+    downloadTelemetryCsv(serializeTelemetryCsv(rows as any), "bhoonidi-mission-export.csv");
+  };
+
   return (
     <main className="mx-auto max-w-[1120px] px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -52,7 +76,12 @@ export function ExportPage() {
                 <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>
               </div>
             </div>
-            <GcsButton variant={ready ? "primary" : "outline"} size="sm" disabled={!ready}>
+            <GcsButton
+              variant={ready ? "primary" : "outline"}
+              size="sm"
+              disabled={!ready}
+              onClick={ready ? handleCsvExport : undefined}
+            >
               {action}
             </GcsButton>
           </Panel>

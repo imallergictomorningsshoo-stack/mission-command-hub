@@ -28,7 +28,7 @@ const linkReadouts = [
 
 export function ConnectionPage() {
   const navigate = useNavigate();
-  const { connection } = useTelemetry();
+  const { connection, setConnection } = useTelemetry();
   const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
 
   useEffect(() => {
@@ -38,6 +38,21 @@ export function ConnectionPage() {
   }, [connection, navigate]);
 
   const connected = status === "connected" || connection === "Receiving";
+
+  const handleConnect = () => {
+    setStatus("connecting");
+    setConnection("Receiving");
+
+    window.setTimeout(() => {
+      setStatus("connected");
+      setConnection("Receiving");
+    }, 1200);
+  };
+
+  const handleReset = () => {
+    setStatus("idle");
+    setConnection("Disconnected");
+  };
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-6">
@@ -116,17 +131,11 @@ export function ConnectionPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <GcsButton
-                onClick={() => {
-                  setStatus("connecting");
-                  window.setTimeout(() => setStatus("connected"), 1400);
-                }}
-                disabled={status !== "idle"}
-              >
+              <GcsButton onClick={handleConnect} disabled={status !== "idle"}>
                 {status === "connecting" ? <Loader2 className="animate-spin" /> : <Cable />}
                 {connected ? "Link Established" : "Connect"}
               </GcsButton>
-              <GcsButton variant="outline" onClick={() => setStatus("idle")}>
+              <GcsButton variant="outline" onClick={handleReset}>
                 Reset Link
               </GcsButton>
             </div>
