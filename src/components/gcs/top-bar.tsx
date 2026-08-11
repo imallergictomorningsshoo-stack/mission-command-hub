@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, Signal } from "lucide-react";
 import { StatusChip } from "./status-chip";
 import { ThemeToggle } from "./theme-toggle";
@@ -47,6 +47,19 @@ export function TopBar() {
           </StatusChip>
         </div>
       </div>
+      <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-4 py-2 lg:hidden">
+        {navSections.flatMap((s) => s.items).map(({ to, label, icon: Icon }) => (
+          <Link
+            key={to}
+            to={to}
+            activeOptions={{ exact: to === "/" }}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap text-muted-foreground transition-colors data-[status=active]:bg-signal/10 data-[status=active]:text-signal"
+          >
+            <Icon className="size-3.5" strokeWidth={1.8} />
+            {label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }
