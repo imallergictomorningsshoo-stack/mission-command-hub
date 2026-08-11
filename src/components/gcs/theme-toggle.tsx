@@ -4,7 +4,7 @@ import { Moon, Sun } from "lucide-react";
 type Theme = "dark" | "light";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     const stored = localStorage.getItem("gcs-theme") as Theme | null;
@@ -12,7 +12,7 @@ export function ThemeToggle() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("light", theme === "light");
+    document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("gcs-theme", theme);
   }, [theme]);
 
@@ -24,7 +24,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(next)}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
-      className="flex items-center gap-2 rounded-lg border border-border bg-panel/50 px-2.5 py-1.5 text-muted-foreground transition-colors hover:border-signal/35 hover:text-signal"
+      className="inline-flex items-center gap-2 rounded-lg border border-border bg-panel px-2.5 py-1.5 text-muted-foreground transition-colors hover:border-signal/40 hover:text-signal"
     >
       {theme === "dark" ? (
         <Sun className="size-4" strokeWidth={1.8} />

@@ -11,7 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { TopNav } from "@/components/gcs/top-nav";
+import { SideNav } from "@/components/gcs/side-nav";
+import { TopBar } from "@/components/gcs/top-bar";
 
 function NotFoundComponent() {
   return (
@@ -133,10 +134,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen">
-        <TopNav />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+      <div className="flex min-h-screen w-full">
+        <SideNav />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </div>
       </div>
     </QueryClientProvider>
   );
