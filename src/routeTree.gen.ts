@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as ExportRouteImport } from './routes/export'
 import { Route as MissionRouteImport } from './routes/mission'
+import { Route as OverviewRouteImport } from './routes/overview'
+import { Route as PreFlightRouteImport } from './routes/pre-flight'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +36,32 @@ const MissionRoute = MissionRouteImport.update({
   path: '/mission',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OverviewRoute = OverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreFlightRoute = PreFlightRouteImport.update({
+  id: '/pre-flight',
+  path: '/pre-flight',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analysis': typeof AnalysisRoute
   '/export': typeof ExportRoute
   '/mission': typeof MissionRoute
+  '/overview': typeof OverviewRoute
+  '/pre-flight': typeof PreFlightRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analysis': typeof AnalysisRoute
   '/export': typeof ExportRoute
   '/mission': typeof MissionRoute
+  '/overview': typeof OverviewRoute
+  '/pre-flight': typeof PreFlightRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,23 @@ export interface FileRoutesById {
   '/analysis': typeof AnalysisRoute
   '/export': typeof ExportRoute
   '/mission': typeof MissionRoute
+  '/overview': typeof OverviewRoute
+  '/pre-flight': typeof PreFlightRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analysis' | '/export' | '/mission'
+  fullPaths:
+    '/' | '/analysis' | '/export' | '/mission' | '/overview' | '/pre-flight'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analysis' | '/export' | '/mission'
-  id: '__root__' | '/' | '/analysis' | '/export' | '/mission'
+  to: '/' | '/analysis' | '/export' | '/mission' | '/overview' | '/pre-flight'
+  id:
+    | '__root__'
+    | '/'
+    | '/analysis'
+    | '/export'
+    | '/mission'
+    | '/overview'
+    | '/pre-flight'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +93,8 @@ export interface RootRouteChildren {
   AnalysisRoute: typeof AnalysisRoute
   ExportRoute: typeof ExportRoute
   MissionRoute: typeof MissionRoute
+  OverviewRoute: typeof OverviewRoute
+  PreFlightRoute: typeof PreFlightRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +127,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MissionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pre-flight': {
+      id: '/pre-flight'
+      path: '/pre-flight'
+      fullPath: '/pre-flight'
+      preLoaderRoute: typeof PreFlightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +149,8 @@ const rootRouteChildren: RootRouteChildren = {
   AnalysisRoute: AnalysisRoute,
   ExportRoute: ExportRoute,
   MissionRoute: MissionRoute,
+  OverviewRoute: OverviewRoute,
+  PreFlightRoute: PreFlightRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
