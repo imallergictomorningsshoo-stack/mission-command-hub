@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   ClipboardCheck,
   Rocket,
-  ParachuteIcon,
+  Wind,
   Leaf,
   Download,
   Terminal,
@@ -24,7 +24,7 @@ export const navSections = [
       { to: "/overview", label: "Mission Overview", code: "OVW", icon: LayoutDashboard },
       { to: "/pre-flight", label: "Pre-Flight", code: "PRE", icon: ClipboardCheck },
       { to: "/mission", label: "Flight Operations", code: "OPS", icon: Rocket },
-      { to: "/post-flight", label: "Post-Flight", code: "PST", icon: ParachuteIcon },
+      { to: "/post-flight", label: "Post-Flight", code: "PST", icon: Wind },
     ],
   },
   {
