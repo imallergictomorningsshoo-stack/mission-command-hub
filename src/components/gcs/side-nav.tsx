@@ -10,10 +10,13 @@ import {
   Terminal,
   SlidersHorizontal,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import navarsLogo from "@/assets/navars-space-lab.png";
 import gaudiumLogo from "@/assets/gaudium-school.png";
 
-export const navSections = [
+export type NavItem = { to: string; label: string; code: string; icon: LucideIcon };
+
+export const navSections: { group: string; items: NavItem[] }[] = [
   {
     group: "Link",
     items: [{ to: "/", label: "Connection", code: "CON", icon: Radio }],
@@ -41,7 +44,7 @@ export const navSections = [
       { to: "/logs", label: "System Logs", code: "LOG", icon: Terminal },
     ],
   },
-] as const;
+];
 
 export function SideNav() {
   return (
@@ -72,7 +75,7 @@ export function SideNav() {
               {section.items.map(({ to, label, code, icon: Icon }) => (
                 <Link
                   key={to}
-                  to={to}
+                  to={to as "/"}
                   activeOptions={{ exact: to === "/" }}
                   className="group flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13px] text-sidebar-foreground/65 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-primary"
                 >

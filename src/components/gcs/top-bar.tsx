@@ -51,7 +51,7 @@ export function TopBar() {
         {navSections.flatMap((s) => s.items).map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
-            to={to}
+            to={to as "/"}
             activeOptions={{ exact: to === "/" }}
             className="flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap text-muted-foreground transition-colors data-[status=active]:bg-signal/10 data-[status=active]:text-signal"
           >
