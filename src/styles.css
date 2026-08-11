@@ -247,7 +247,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, oklch(0.79 0.14 205 / 22%), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--signal) 22%, transparent), transparent);
     animation: sweep 3.2s linear infinite;
   }
 }
