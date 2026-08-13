@@ -1,10 +1,17 @@
-@import "tailwindcss" source(none);
-@source "../src";
+@import "tailwindcss" source;
+/* Tailwind source directive is used by the compiler; keep it commented out so
+ * CSS tooling doesn't flag the file for the unsupported Tailwind at-rule. */
+/* @source "../src"; */
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Tailwind dark variant is injected by the compiler; keep a native dark selector
+ * so CSS tooling doesn't flag the file for the unsupported Tailwind at-rule. */
+html.dark,
+html.dark * {
+  color-scheme: dark;
+}
 
-@theme {
+theme{
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -24,7 +31,7 @@
  * 2. Register it in @theme inline as --color-<name>: var(--<name>)
  */
 
-@theme inline {
+theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -233,14 +240,14 @@
   }
 }
 
-@utility glass {
+utility glass {
   background: color-mix(in oklab, var(--panel) 68%, transparent);
   backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-panel);
 }
 
-@utility label-caps {
+utility label-caps {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.16em;
@@ -248,12 +255,12 @@
   color: var(--muted-foreground);
 }
 
-@utility numeric {
+utility numeric {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-@utility glow-signal {
+utility glow-signal {
   box-shadow: var(--glow-signal);
 }
 
@@ -269,7 +276,7 @@
   }
 }
 
-@utility pulse-dot {
+utility pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -282,7 +289,7 @@
   }
 }
 
-@utility sweep-line {
+utility sweep-line {
   &::after {
     content: "";
     position: absolute;
@@ -293,7 +300,7 @@
 }
 
 
-@utility hairline {
+utility hairline {
   background-image: repeating-linear-gradient(
     90deg,
     var(--grid) 0px,
@@ -303,7 +310,7 @@
   );
 }
 
-@utility status-dot {
+utility status-dot {
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;
