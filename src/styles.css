@@ -1,17 +1,7 @@
-@import "tailwindcss" source;
-/* Tailwind source directive is used by the compiler; keep it commented out so
- * CSS tooling doesn't flag the file for the unsupported Tailwind at-rule. */
-/* @source "../src"; */
+@import "tailwindcss";
 @import "tw-animate-css";
 
-/* Tailwind dark variant is injected by the compiler; keep a native dark selector
- * so CSS tooling doesn't flag the file for the unsupported Tailwind at-rule. */
-html.dark,
-html.dark * {
-  color-scheme: dark;
-}
-
-theme{
+@theme {
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
