@@ -61,10 +61,10 @@ export function ConnectionPage() {
           <span className="label-caps">Malaysian Rocket Competition 2026 · Team Bhoonidi</span>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">Ground Station Connection</h1>
         </div>
-        <div className="flex items-center gap-5">
-          <img src={gaudiumLogo} alt="The Gaudium School" className="h-12 w-auto rounded-md bg-foreground px-2 py-1" />
-          <span className="h-9 w-px bg-border" />
-          <img src={navarsLogo} alt="Navars Space Lab" className="h-8 w-auto brightness-150" />
+        <div className="flex items-center gap-4">
+          <img src={gaudiumLogo} alt="The Gaudium School" className="h-7 w-auto rounded bg-foreground/90 px-1.5 py-0.5" />
+          <span className="h-6 w-px bg-border" />
+          <img src={navarsLogo} alt="Navars Space Lab" className="h-5 w-auto opacity-80 brightness-125" />
         </div>
       </div>
 

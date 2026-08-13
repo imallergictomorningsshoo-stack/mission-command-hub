@@ -1,21 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ConnectionPage } from "@/pages/ConnectionPage";
+import { MissionControlPage } from "@/pages/MissionControlPage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ground Station Connection — Bhoonidi GCS" },
+      { title: "Flight Operations — Bhoonidi GCS" },
       {
         name: "description",
         content:
-          "Establish the serial link between the Bhoonidi ground station and the CanSat telemetry downlink.",
+          "Live CanSat telemetry monitoring, dual camera feeds, telemetry logs, and mission control for Team Bhoonidi.",
       },
-      { property: "og:title", content: "Ground Station Connection — Bhoonidi GCS" },
+      { property: "og:title", content: "Flight Operations — Bhoonidi GCS" },
       {
         property: "og:description",
-        content: "Serial link setup and telemetry handshake for the MRCC CanSat mission.",
+        content: "Live CanSat telemetry monitoring for MRCC.",
       },
     ],
   }),
-  component: ConnectionPage,
+  component: MissionControlPage,
 });
+
