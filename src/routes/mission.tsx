@@ -180,7 +180,7 @@ function FlightOperations() {
 
       {/* Fills the remaining viewport height */}
       <div className="grid min-h-0 flex-1 gap-2.5 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="grid min-h-0 gap-2.5 lg:grid-cols-2 lg:[grid-template-rows:repeat(2,minmax(0,1fr))]">
+        <div className="grid min-h-0 gap-2.5 lg:grid-cols-2 lg:grid-rows-2">
           <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" compact />
           <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" compact />
 
