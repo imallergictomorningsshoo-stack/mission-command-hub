@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Cable,
   Loader2,
@@ -18,6 +18,13 @@ import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { GcsButton } from "@/components/gcs/gcs-button";
 import { DataRow } from "@/components/gcs/summary-card";
+import {
+  useLink,
+  connectSerial,
+  disconnectSerial,
+  isSerialSupported,
+} from "@/lib/serial-link";
+import { useConfig } from "@/lib/gcs-config";
 import navarsLogo from "@/assets/navars-space-lab.png";
 import gaudiumLogo from "@/assets/gaudium-school.png";
 
@@ -40,20 +47,6 @@ export const Route = createFileRoute("/")({
   component: ConnectionPage,
 });
 
-const ports = [
-  { id: "COM3", desc: "SiLabs CP2102 · 57600 baud" },
-  { id: "COM5", desc: "FTDI FT232R · 115200 baud" },
-  { id: "/dev/ttyUSB0", desc: "XBee Pro S2C · 9600 baud" },
-];
-
-const stationStats = [
-  { icon: ShieldCheck, label: "System Health", value: "100", unit: "%", tone: "text-ok" },
-  { icon: SignalHigh, label: "Signal Strength", value: "−63", unit: "dBm", tone: "text-signal" },
-  { icon: BarChart3, label: "Packet Loss", value: "0", unit: "%", tone: "text-ok" },
-  { icon: Clock, label: "Uptime", value: "00:12:43", unit: "", tone: "text-foreground" },
-  { icon: ArrowDownUp, label: "Data Rate", value: "57", unit: "pkt/s", tone: "text-foreground" },
-] as const;
-
 const checks = [
   "IMU",
   "Pressure Sensor",
@@ -64,20 +57,49 @@ const checks = [
   "Battery",
 ] as const;
 
-const linkReadouts = [
-  { label: "Downlink", value: "433.000", unit: "MHz" },
-  { label: "Baud Rate", value: "57600", unit: "bps" },
-  { label: "Telemetry Rate", value: "1.0", unit: "Hz" },
-  { label: "Battery", value: "4.08", unit: "V" },
-  { label: "RSSI (LoRa)", value: "−63", unit: "dBm" },
-] as const;
-
 function ConnectionPage() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState<"idle" | "connecting" | "connected">("idle");
+  const link = useLink();
+  const config = useConfig();
+  const [supported, setSupported] = useState(true);
+  const [uptime, setUptime] = useState(0);
 
+  useEffect(() => setSupported(isSerialSupported()), []);
+
+  const status = link.status;
   const connected = status === "connected";
-  const activePort = ports[0]!;
+
+  useEffect(() => {
+    if (!connected) {
+      setUptime(0);
+      return;
+    }
+    const id = window.setInterval(() => setUptime((v) => v + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [connected]);
+
+  const pkt = link.packets[link.packets.length - 1];
+  const total = link.packets.length + link.malformed;
+  const loss = total ? ((link.malformed / total) * 100).toFixed(1) : "0";
+  const hhmmss = `${Math.floor(uptime / 3600).toString().padStart(2, "0")}:${Math.floor((uptime % 3600) / 60).toString().padStart(2, "0")}:${(uptime % 60).toString().padStart(2, "0")}`;
+
+  const stationStats = [
+    { icon: ShieldCheck, label: "System Health", value: connected ? "100" : "—", unit: "%", tone: "text-ok" },
+    { icon: SignalHigh, label: "Data In", value: (link.bytesIn / 1024).toFixed(1), unit: "KB", tone: "text-signal" },
+    { icon: BarChart3, label: "Malformed Frames", value: loss, unit: "%", tone: link.malformed ? "text-warn" : "text-ok" },
+    { icon: Clock, label: "Link Uptime", value: hhmmss, unit: "", tone: "text-foreground" },
+    { icon: ArrowDownUp, label: "Packets", value: String(link.packets.length), unit: "rx", tone: "text-foreground" },
+  ] as const;
+
+  const linkReadouts = [
+    { label: "Downlink", value: config.frequency, unit: "MHz" },
+    { label: "Baud Rate", value: String(config.baudRate), unit: "bps" },
+    { label: "Telemetry Rate", value: config.packetRate.toFixed(1), unit: "Hz" },
+    { label: "Battery", value: pkt ? pkt.voltage.toFixed(2) : "—", unit: "V" },
+    { label: "Spreading Factor", value: config.spreadingFactor, unit: "" },
+  ] as const;
+
+  const activePort = { id: link.portLabel ?? "Not selected" };
 
   return (
     <main className="mx-auto max-w-[1600px] px-6 py-6">
@@ -128,14 +150,14 @@ function ConnectionPage() {
           </Panel>
 
           <Panel>
-            <PanelHeader title="Link Timer" hint="Handshake" />
+            <PanelHeader title="Link Timer" hint="Session" />
             <div className="flex items-center gap-4 px-5 py-5">
               <div>
                 <p className="numeric text-3xl font-semibold text-signal">
-                  {connected ? "T− 00:42" : "T− --:--"}
+                  {connected ? hhmmss : "--:--:--"}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {connected ? "To mission arm" : "Awaiting link"}
+                  {connected ? "Link uptime" : "Awaiting link"}
                 </p>
               </div>
               <Rocket className="ml-auto size-9 text-signal/70" strokeWidth={1.3} />
@@ -167,44 +189,50 @@ function ConnectionPage() {
               <div className="relative">
                 <span className="label-caps">Downlink Handshake</span>
                 <p className="numeric mt-3 text-5xl font-semibold text-signal">
-                  {connected ? "LINKED" : status === "connecting" ? "SYNC…" : "T− 00:42"}
+                  {connected ? "LINKED" : status === "connecting" ? "SYNC…" : "STANDBY"}
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {connected
-                    ? `Telemetry stream locked · ${activePort.id} · 1 Hz`
-                    : "Checking systems…"}
+                    ? `Telemetry stream locked · ${activePort.id}`
+                    : supported
+                      ? "Select the ground-station serial adapter to begin."
+                      : "Web Serial needs Chrome or Edge over HTTPS."}
                 </p>
                 <div className="mx-auto mt-5 grid max-w-sm gap-1.5 text-left">
                   {checks.map((c) => (
                     <div key={c} className="flex items-center gap-2 text-xs">
                       <Check className="size-3.5 text-ok" strokeWidth={2.4} />
                       <span className="text-muted-foreground">{c}</span>
-                      <span className="numeric ml-auto text-[11px] text-ok">OK</span>
+                      <span className="numeric ml-auto text-[11px] text-ok">
+                        {connected ? "OK" : "—"}
+                      </span>
                     </div>
                   ))}
                 </div>
-                <p className="label-caps mt-5 text-ok">All systems nominal</p>
+                <p className="label-caps mt-5 text-ok">
+                  {connected ? "All systems nominal" : "Awaiting downlink"}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <GcsButton
-                onClick={() => {
-                  setStatus("connecting");
-                  setTimeout(() => setStatus("connected"), 1400);
-                }}
-                disabled={status !== "idle"}
+                onClick={() => void connectSerial(config.baudRate)}
+                disabled={status === "connecting" || connected || !supported}
               >
                 {status === "connecting" ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <Cable />
                 )}
-                {connected ? "Link Established" : "Connect"}
+                {connected ? "Link Established" : "Select Serial Port"}
               </GcsButton>
-              <GcsButton variant="outline" onClick={() => setStatus("idle")}>
-                Reset Link
+              <GcsButton variant="outline" onClick={() => void disconnectSerial()}>
+                Disconnect
               </GcsButton>
+              {link.error ? (
+                <span className="text-xs text-warn">{link.error}</span>
+              ) : null}
             </div>
 
             <GcsButton

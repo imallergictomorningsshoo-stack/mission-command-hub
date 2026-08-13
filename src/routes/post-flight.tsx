@@ -7,6 +7,7 @@ import { TelemetryChart } from "@/components/gcs/telemetry-chart";
 import { DataRow } from "@/components/gcs/summary-card";
 import { GcsButton } from "@/components/gcs/gcs-button";
 import { Tile } from "@/components/gcs/ui-bits";
+import { GpsMap, type TrackPoint } from "@/components/gcs/gps-map";
 import { packets, stats } from "@/lib/telemetry";
 
 export const Route = createFileRoute("/post-flight")({
@@ -47,6 +48,17 @@ const timeline = [
   { t: "T+ 00:11:02", label: "Payload recovered", note: "412 m from launch pad" },
 ];
 
+// Downlinked GPS fixes for the flight (launch pad -> touchdown).
+const track: TrackPoint[] = [
+  { lat: 3.20218, lon: 101.70102, label: "Launch pad" },
+  { lat: 3.20264, lon: 101.70158 },
+  { lat: 3.20331, lon: 101.70221 },
+  { lat: 3.20402, lon: 101.70289 },
+  { lat: 3.20478, lon: 101.70358 },
+  { lat: 3.20535, lon: 101.70407 },
+  { lat: 3.20581, lon: 101.70443, label: "Touchdown" },
+];
+
 function PostFlightPage() {
   return (
     <main className="mx-auto w-full max-w-[1700px] px-6 py-6">
@@ -75,8 +87,8 @@ function PostFlightPage() {
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <CameraFeed title="Camera A Replay" hint="NIR · 3,412 frames" mode="nir" resolution="1280×720" fps="12 fps" />
-            <CameraFeed title="Camera B Replay" hint="Grayscale · 3,408 frames" mode="gray" resolution="1280×720" fps="15 fps" />
+            <CameraFeed title="Camera A Replay" hint="NIR · 3,412 frames" mode="nir" />
+            <CameraFeed title="Camera B Replay" hint="Grayscale · 3,408 frames" mode="gray" />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <TelemetryChart title="Altitude vs Time" unit="m AGL" dataKey="altitude" data={packets} />
@@ -121,6 +133,9 @@ function PostFlightPage() {
 
           <Panel>
             <PanelHeader title="Landing Site" hint="GPS" />
+            <div className="px-4 pt-4">
+              <GpsMap track={track} className="h-[240px] w-full" />
+            </div>
             <div className="px-5 py-2">
               <DataRow label="Latitude" value="3.20581 N" />
               <DataRow label="Longitude" value="101.70443 E" />

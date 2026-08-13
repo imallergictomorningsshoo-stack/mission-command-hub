@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Gauge, Mountain, Thermometer, Compass, Send, Power, CircleStop, Camera } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { TelemetryCard } from "@/components/gcs/telemetry-card";
@@ -8,10 +8,11 @@ import { AlertPopup, type AlertKind } from "@/components/gcs/alert-popup";
 import { CameraFeed } from "@/components/gcs/camera-feed";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { GcsButton } from "@/components/gcs/gcs-button";
-import { DataRow } from "@/components/gcs/summary-card";
 import { AttitudeDial } from "@/components/gcs/attitude-dial";
-import { StageTimeline, Tile } from "@/components/gcs/ui-bits";
-import { packets, latest } from "@/lib/telemetry";
+import { StageTimeline } from "@/components/gcs/ui-bits";
+import { packets as demoPackets } from "@/lib/telemetry";
+import { useLink, sendCommand } from "@/lib/serial-link";
+import { useConfig } from "@/lib/gcs-config";
 
 export const Route = createFileRoute("/mission")({
   head: () => ({
@@ -41,48 +42,68 @@ const stages = [
 ];
 
 const commands = [
-  { label: "Deploy Recovery", icon: Send, tone: "primary" as const },
-  { label: "Capture Frame", icon: Camera, tone: "outline" as const },
-  { label: "Reset Telemetry", icon: Power, tone: "outline" as const },
-  { label: "Abort Sequence", icon: CircleStop, tone: "danger" as const },
+  { label: "Deploy Recovery", cmd: "CMD:DEPLOY", icon: Send, tone: "primary" as const },
+  { label: "Capture Frame", cmd: "CMD:CAPTURE", icon: Camera, tone: "outline" as const },
+  { label: "Reset Telemetry", cmd: "CMD:RESET", icon: Power, tone: "outline" as const },
+  { label: "Abort Sequence", cmd: "CMD:ABORT", icon: CircleStop, tone: "danger" as const },
 ];
 
+function met(seconds: number) {
+  const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
 function FlightOperations() {
-  const prev = packets[packets.length - 2]!;
-  const recent = [...packets].slice(-14).reverse();
+  const link = useLink();
+  const config = useConfig();
   const [alert, setAlert] = useState<{ kind: AlertKind; detail: string; timestamp: string } | null>(
     null,
   );
+  const lostRef = useRef(false);
 
-  // Raise a popup only for telemetry loss or weak-signal conditions.
+  const isLive = link.status === "connected" && link.packets.length > 0;
+  const source = isLive ? link.packets : demoPackets;
+  const latest = source[source.length - 1]!;
+  const prev = source[source.length - 2] ?? latest;
+  const recent = [...source].slice(-12).reverse();
+
+  // Telemetry-lost watchdog driven by the configured packet timeout.
   useEffect(() => {
-    const stamp = () => new Date().toISOString().slice(11, 19);
-    const t1 = setTimeout(
-      () =>
-        setAlert({
-          kind: "weak-signal",
-          detail: "RSSI dropped to −91 dBm. Check antenna alignment.",
-          timestamp: stamp(),
-        }),
-      4000,
-    );
-    const t2 = setTimeout(
-      () =>
+    if (link.status !== "connected") return;
+    const timeoutMs = (Number(config.packetTimeout) || 4) * 1000;
+    const id = window.setInterval(() => {
+      const last = link.lastPacketAt;
+      const gap = last ? Date.now() - last : Infinity;
+      if (gap > timeoutMs && !lostRef.current) {
+        lostRef.current = true;
         setAlert({
           kind: "telemetry-lost",
-          detail: "No packets received for 4.0 s — downlink gap during descent.",
-          timestamp: stamp(),
-        }),
-      12000,
-    );
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
+          detail: `No packets received for ${(gap / 1000).toFixed(1)} s on ${link.portLabel ?? "the serial link"}.`,
+          timestamp: new Date().toISOString().slice(11, 19),
+        });
+      } else if (gap <= timeoutMs) {
+        lostRef.current = false;
+      }
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [link.status, link.lastPacketAt, link.portLabel, config.packetTimeout]);
+
+  // Weak-signal warning derived from the battery/link health of the latest packet.
+  useEffect(() => {
+    if (!isLive) return;
+    if (latest.voltage && latest.voltage < Number(config.lowBattery)) {
+      setAlert({
+        kind: "weak-signal",
+        detail: `Payload battery at ${latest.voltage.toFixed(2)} V — below the ${config.lowBattery} V threshold.`,
+        timestamp: new Date().toISOString().slice(11, 19),
+      });
+    }
+  }, [isLive, latest.voltage, config.lowBattery]);
 
   return (
-    <main className="mx-auto w-full max-w-[1700px] px-6 py-6">
+    <main className="flex h-full min-h-0 w-full flex-col gap-2.5 overflow-hidden px-4 py-3">
       {alert ? (
         <AlertPopup
           kind={alert.kind}
@@ -92,137 +113,152 @@ function FlightOperations() {
         />
       ) : null}
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="label-caps">Live Flight · CANSAT-BH-01</span>
-          <h1 className="mt-1.5 text-2xl font-semibold tracking-tight">Flight Operations</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-lg font-semibold tracking-tight">Flight Operations</h1>
+          <span className="label-caps">CANSAT-BH-01</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusChip tone="info" pulse>
             {latest.state}
           </StatusChip>
-          <StatusChip tone="online">RSSI −64 dBm</StatusChip>
-          <StatusChip tone="idle">1 Hz Downlink</StatusChip>
+          <StatusChip tone={isLive ? "online" : "idle"}>
+            {isLive ? `Live · ${link.packets.length} pkt` : "Demo Data"}
+          </StatusChip>
+          <StatusChip tone="idle">{config.packetRate.toFixed(1)} Hz Downlink</StatusChip>
         </div>
       </div>
 
-      <Panel className="mt-5">
+      {/* Flight phase */}
+      <Panel className="shrink-0">
         <PanelHeader
           title="Flight Phase"
           hint="Sequence"
-          right={<span className="numeric text-xs text-signal">MET 00:04:18</span>}
+          right={<span className="numeric text-xs text-signal">MET {met(latest.t)}</span>}
         />
         <StageTimeline stages={stages} activeIndex={4} />
       </Panel>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <TelemetryCard
-              label="Altitude"
-              value={latest.altitude.toFixed(1)}
-              unit="m AGL"
-              icon={Mountain}
-              delta={`${Math.abs(latest.altitude - prev.altitude).toFixed(1)} m`}
-              trend={latest.altitude >= prev.altitude ? "up" : "down"}
-            />
-            <TelemetryCard
-              label="Pressure"
-              value={latest.pressure.toFixed(2)}
-              unit="hPa"
-              icon={Gauge}
-              accent="accent"
-              delta={`${Math.abs(latest.pressure - prev.pressure).toFixed(2)} hPa`}
-              trend={latest.pressure >= prev.pressure ? "up" : "down"}
-            />
-            <TelemetryCard
-              label="Temperature"
-              value={latest.temperature.toFixed(2)}
-              unit="°C"
-              icon={Thermometer}
-              accent="warn"
-              delta={`${Math.abs(latest.temperature - prev.temperature).toFixed(2)} °C`}
-              trend={latest.temperature >= prev.temperature ? "up" : "down"}
-            />
-            <TelemetryCard
-              label="Tilt"
-              value={latest.tilt.toFixed(1)}
-              unit="deg"
-              icon={Compass}
-              accent="ok"
-              delta={`${Math.abs(latest.tilt - prev.tilt).toFixed(1)}°`}
-              trend={latest.tilt >= prev.tilt ? "up" : "down"}
-            />
-          </div>
+      {/* Telemetry directly under the flight phase */}
+      <div className="grid shrink-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+        <TelemetryCard
+          label="Altitude"
+          value={latest.altitude.toFixed(1)}
+          unit="m AGL"
+          icon={Mountain}
+          delta={`${Math.abs(latest.altitude - prev.altitude).toFixed(1)} m`}
+          trend={latest.altitude >= prev.altitude ? "up" : "down"}
+        />
+        <TelemetryCard
+          label="Pressure"
+          value={latest.pressure.toFixed(2)}
+          unit="hPa"
+          icon={Gauge}
+          accent="accent"
+          delta={`${Math.abs(latest.pressure - prev.pressure).toFixed(2)} hPa`}
+          trend={latest.pressure >= prev.pressure ? "up" : "down"}
+        />
+        <TelemetryCard
+          label="Temperature"
+          value={latest.temperature.toFixed(2)}
+          unit="°C"
+          icon={Thermometer}
+          accent="warn"
+          delta={`${Math.abs(latest.temperature - prev.temperature).toFixed(2)} °C`}
+          trend={latest.temperature >= prev.temperature ? "up" : "down"}
+        />
+        <TelemetryCard
+          label="Tilt"
+          value={latest.tilt.toFixed(1)}
+          unit="deg"
+          icon={Compass}
+          accent="ok"
+          delta={`${Math.abs(latest.tilt - prev.tilt).toFixed(1)}°`}
+          trend={latest.tilt >= prev.tilt ? "up" : "down"}
+        />
+      </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" resolution="1280×720" fps="12 fps" />
-            <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" resolution="1280×720" fps="15 fps" />
-          </div>
+      {/* Fills the remaining viewport height */}
+      <div className="grid min-h-0 flex-1 gap-2.5 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid min-h-0 gap-2.5 lg:grid-cols-2 lg:grid-rows-2">
+          <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" compact />
+          <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" compact />
 
-          <Panel>
-            <PanelHeader title="Attitude & Rates" hint="IMU" right={<StatusChip tone="online" pulse>Live</StatusChip>} />
-            <div className="grid gap-3 px-5 py-4 sm:grid-cols-4">
+          <Panel className="flex min-h-0 flex-col overflow-hidden">
+            <PanelHeader title="Attitude & Rates" hint="IMU" />
+            <div className="grid min-h-0 flex-1 grid-cols-3 items-center gap-2 px-3 py-2">
               <AttitudeDial label="Pitch" angle={latest.tilt * 0.6} />
               <AttitudeDial label="Roll" angle={-latest.tilt * 0.4} />
               <AttitudeDial label="Yaw Rate" angle={12.4} unit="°/s" max={180} />
-              <div className="grid gap-2">
-                <Tile label="Descent Rate" value="6.4" unit="m/s" tone="signal" />
-                <Tile label="G-Load" value="1.02" unit="g" />
-              </div>
+            </div>
+          </Panel>
+
+          <Panel className="flex min-h-0 flex-col overflow-hidden">
+            <PanelHeader
+              title="Telemetry Log"
+              hint={isLive ? "Live Stream" : "Recorded"}
+              right={
+                <StatusChip tone={isLive ? "online" : "idle"} pulse={isLive}>
+                  {isLive ? "Receiving" : "Static"}
+                </StatusChip>
+              }
+            />
+            <div className="min-h-0 flex-1 overflow-auto">
+              <TelemetryTable rows={recent} />
             </div>
           </Panel>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <Panel>
+        <div className="flex min-h-0 flex-col gap-2.5">
+          <Panel className="shrink-0">
             <PanelHeader title="Mission Information" hint="Status" />
-            <div className="px-5 py-4">
+            <div className="px-4 py-4">
               <div className="rounded-xl border border-signal/25 bg-signal/5 px-4 py-4 text-center">
                 <span className="label-caps">Mission Elapsed Time</span>
-                <p className="numeric mt-2 text-3xl font-semibold text-signal">00:04:18</p>
-              </div>
-              <div className="mt-3">
-                <DataRow label="Packets Received" value="120" />
-                <DataRow label="Packets Expected" value="124" />
-                <DataRow label="Packet Loss" value="3.2 %" />
-                <DataRow label="Last Packet" value="14:32:06 UTC" />
-                <DataRow label="Ground Station" value="CONNECTED" />
-                <DataRow label="Serial Port" value="COM3 · 57600" />
-                <DataRow label="Battery" value={`${latest.voltage.toFixed(2)} V`} />
+                <p className="numeric mt-2 text-3xl font-semibold text-signal">{met(latest.t)}</p>
               </div>
             </div>
           </Panel>
 
-          <Panel>
-            <PanelHeader title="Command Panel" hint="Uplink" right={<StatusChip tone="warn">Armed</StatusChip>} />
-            <div className="grid gap-2 px-5 py-4">
-              {commands.map(({ label, icon: Icon, tone }) => (
-                <GcsButton key={label} variant={tone} size="sm" className="justify-start">
+          <Panel className="flex min-h-0 flex-1 flex-col">
+            <PanelHeader
+              title="Command Panel"
+              hint="Uplink"
+              right={
+                <StatusChip tone={link.status === "connected" ? "online" : "warn"}>
+                  {link.status === "connected" ? "Armed" : "No Link"}
+                </StatusChip>
+              }
+            />
+            <div className="grid gap-2 px-4 py-3">
+              {commands.map(({ label, cmd, icon: Icon, tone }) => (
+                <GcsButton
+                  key={label}
+                  variant={tone}
+                  size="sm"
+                  className="justify-start"
+                  onClick={() => void sendCommand(cmd)}
+                >
                   <Icon />
                   {label}
                 </GcsButton>
               ))}
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Uplink commands are staged in the UI only — no radio transmit is wired yet.
-              </p>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto border-t border-border/60 px-4 py-2">
+              <span className="label-caps text-[9px]">Uplink Log</span>
+              {link.sent.length === 0 ? (
+                <p className="mt-1 text-[11px] text-muted-foreground">No commands transmitted.</p>
+              ) : (
+                [...link.sent].reverse().map((c, i) => (
+                  <p key={`${c}-${i}`} className="numeric mt-1 text-[11px] text-muted-foreground">
+                    → {c}
+                  </p>
+                ))
+              )}
             </div>
           </Panel>
         </div>
       </div>
-
-      <Panel className="mt-4">
-        <PanelHeader
-          title="Telemetry Log"
-          hint="Live Stream"
-          right={
-            <StatusChip tone="online" pulse>
-              Receiving
-            </StatusChip>
-          }
-        />
-        <TelemetryTable rows={recent} />
-      </Panel>
     </main>
   );
 }
