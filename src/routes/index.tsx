@@ -150,14 +150,14 @@ function ConnectionPage() {
           </Panel>
 
           <Panel>
-            <PanelHeader title="Link Timer" hint="Handshake" />
+            <PanelHeader title="Link Timer" hint="Session" />
             <div className="flex items-center gap-4 px-5 py-5">
               <div>
                 <p className="numeric text-3xl font-semibold text-signal">
-                  {connected ? "T− 00:42" : "T− --:--"}
+                  {connected ? hhmmss : "--:--:--"}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {connected ? "To mission arm" : "Awaiting link"}
+                  {connected ? "Link uptime" : "Awaiting link"}
                 </p>
               </div>
               <Rocket className="ml-auto size-9 text-signal/70" strokeWidth={1.3} />
@@ -189,7 +189,7 @@ function ConnectionPage() {
               <div className="relative">
                 <span className="label-caps">Downlink Handshake</span>
                 <p className="numeric mt-3 text-5xl font-semibold text-signal">
-                  {connected ? "LINKED" : status === "connecting" ? "SYNC…" : "T− 00:42"}
+                  {connected ? "LINKED" : status === "connecting" ? "SYNC…" : "STANDBY"}
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {connected
