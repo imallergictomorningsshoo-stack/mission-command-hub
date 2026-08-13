@@ -180,11 +180,11 @@ function FlightOperations() {
 
       {/* Fills the remaining viewport height */}
       <div className="grid min-h-0 flex-1 gap-2.5 xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="grid min-h-0 gap-2.5 lg:grid-cols-2">
+        <div className="grid min-h-0 gap-2.5 lg:grid-cols-2 lg:[grid-template-rows:repeat(2,minmax(0,1fr))]">
           <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" compact />
           <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" compact />
 
-          <Panel className="flex min-h-0 flex-col">
+          <Panel className="flex min-h-0 flex-col overflow-hidden">
             <PanelHeader title="Attitude & Rates" hint="IMU" />
             <div className="grid min-h-0 flex-1 grid-cols-3 items-center gap-2 px-3 py-2">
               <AttitudeDial label="Pitch" angle={latest.tilt * 0.6} />
