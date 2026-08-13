@@ -179,7 +179,7 @@ async function readLoop() {
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() ?? "";
-      let bytes = snapshot.bytesIn + value.byteLength;
+      const bytes = snapshot.bytesIn + value.byteLength;
       let malformed = snapshot.malformed;
       const nextPackets = snapshot.packets.slice();
       const nextRaw = snapshot.raw.slice();
