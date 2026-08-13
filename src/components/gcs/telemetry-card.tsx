@@ -26,7 +26,7 @@ export function TelemetryCard({
   }[accent];
 
   return (
-    <div className="group glass relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-signal/30">
+    <div className="group glass relative overflow-hidden rounded-2xl p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-signal/30">
       <div
         className={cn(
           "pointer-events-none absolute -top-16 -right-10 size-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-40",
@@ -37,12 +37,12 @@ export function TelemetryCard({
         <span className="label-caps">{label}</span>
         <Icon className={cn("size-4 opacity-70", accentText)} strokeWidth={1.75} />
       </div>
-      <div className="mt-5 flex items-baseline gap-1.5">
-        <span className="numeric text-4xl leading-none font-semibold tracking-tight">{value}</span>
+      <div className="mt-3 flex items-baseline gap-1.5">
+        <span className="numeric text-3xl leading-none font-semibold tracking-tight">{value}</span>
         <span className="numeric text-sm text-muted-foreground">{unit}</span>
       </div>
       {delta ? (
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           <span
             className={cn(
               "numeric text-xs",
