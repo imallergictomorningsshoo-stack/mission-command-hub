@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-<<<<<<< HEAD
 import { MissionControlPage } from "@/pages/MissionControlPage";
-=======
 import { useEffect, useRef, useState } from "react";
 import { Gauge, Mountain, Thermometer, Compass, Send, Power, CircleStop, Camera } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
@@ -16,7 +14,6 @@ import { StageTimeline } from "@/components/gcs/ui-bits";
 import { packets as demoPackets } from "@/lib/telemetry";
 import { useLink, sendCommand } from "@/lib/serial-link";
 import { useConfig } from "@/lib/gcs-config";
->>>>>>> origin/main
 
 export const Route = createFileRoute("/mission")({
   head: () => ({
@@ -34,11 +31,7 @@ export const Route = createFileRoute("/mission")({
       },
     ],
   }),
-<<<<<<< HEAD
   component: MissionControlPage,
-});
-=======
-  component: FlightOperations,
 });
 
 const stages = [
@@ -270,4 +263,4 @@ function FlightOperations() {
     </main>
   );
 }
->>>>>>> origin/main
+ origin/main
