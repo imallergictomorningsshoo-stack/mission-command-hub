@@ -75,8 +75,8 @@ function PostFlightPage() {
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 lg:grid-cols-2">
-            <CameraFeed title="Camera A Replay" hint="NIR · 3,412 frames" mode="nir" resolution="1280×720" fps="12 fps" />
-            <CameraFeed title="Camera B Replay" hint="Grayscale · 3,408 frames" mode="gray" resolution="1280×720" fps="15 fps" />
+            <CameraFeed title="Camera A Replay" hint="NIR · 3,412 frames" mode="nir" />
+            <CameraFeed title="Camera B Replay" hint="Grayscale · 3,408 frames" mode="gray" />
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <TelemetryChart title="Altitude vs Time" unit="m AGL" dataKey="altitude" data={packets} />

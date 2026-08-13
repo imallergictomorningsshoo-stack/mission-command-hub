@@ -104,7 +104,14 @@ export function parsePacket(line: string, fallbackId: number): Packet | null {
     if (c.length < 7) return null;
     const vals = c.slice(0, 7).map(num);
     if (vals.some((v) => v === null)) return null;
-    [id, t, altitude, pressure, temperature, tilt, voltage] = vals as number[];
+    const v = vals as number[];
+    id = v[0]!;
+    t = v[1]!;
+    altitude = v[2]!;
+    pressure = v[3]!;
+    temperature = v[4]!;
+    tilt = v[5]!;
+    voltage = v[6]!;
     state = (c[7] ?? "IDLE").toUpperCase();
   }
 

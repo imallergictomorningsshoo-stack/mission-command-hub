@@ -104,8 +104,8 @@ function PreFlightPage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <CameraFeed title="Camera A Check" hint="Near-Infrared" mode="nir" resolution="1280×720" fps="12 fps" />
-            <CameraFeed title="Camera B Check" hint="Grayscale" mode="gray" resolution="1280×720" fps="15 fps" />
+            <CameraFeed title="Camera A Check" hint="Near-Infrared" mode="nir" />
+            <CameraFeed title="Camera B Check" hint="Grayscale" mode="gray" />
           </div>
         </div>
 
