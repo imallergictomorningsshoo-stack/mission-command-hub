@@ -31,7 +31,7 @@ export const Route = createFileRoute("/mission")({
       },
     ],
   }),
-  component: MissionControlPage,
+  component: FlightOperations,
 });
 
 const stages = [
