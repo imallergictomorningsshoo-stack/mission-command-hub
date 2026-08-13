@@ -3,7 +3,7 @@ import { Gauge, Mountain, Thermometer, Compass, Bell } from "lucide-react";
 import { Panel, PanelHeader } from "@/components/gcs/panel";
 import { TelemetryCard } from "@/components/gcs/telemetry-card";
 import { TelemetryTable } from "@/components/gcs/telemetry-table";
-import { AlertBanner } from "@/components/gcs/alert-banner";
+import { AlertBanner } from "@/components/gcs/alert-popup";
 import { CameraFeed } from "@/components/gcs/camera-feed";
 import { StatusChip } from "@/components/gcs/status-chip";
 import { DataRow } from "@/components/gcs/summary-card";
@@ -99,8 +99,8 @@ export function MissionControlPage() {
       </div>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
-        <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" resolution="1280×720" fps="12 fps" />
-        <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" resolution="1280×720" fps="15 fps" />
+        <CameraFeed title="Payload Camera A" hint="Near-Infrared" mode="nir" />
+        <CameraFeed title="Payload Camera B" hint="Grayscale" mode="gray" />
       </div>
 
       <div className="fixed right-6 top-24 z-50 w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl border border-border/80 bg-background/80 p-3 shadow-[0_20px_48px_-20px_rgba(15,23,42,0.8)] backdrop-blur-xl">

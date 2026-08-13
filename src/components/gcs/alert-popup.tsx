@@ -60,3 +60,31 @@ export function AlertPopup({
     </div>
   );
 }
+
+export function AlertBanner({
+  level,
+  title,
+  detail,
+  timestamp,
+}: {
+  level: "critical" | "warning" | "resolved";
+  title: string;
+  detail: string;
+  timestamp: string;
+}) {
+  const toneMap = {
+    critical: "border-destructive/30 bg-destructive/10 text-destructive",
+    warning: "border-warn/30 bg-warn/10 text-warn",
+    resolved: "border-ok/30 bg-ok/10 text-ok",
+  };
+
+  return (
+    <div className={cn("rounded-xl border p-2.5 text-xs", toneMap[level])}>
+      <div className="flex items-center justify-between font-semibold">
+        <span>{title}</span>
+        <span className="text-[10px] opacity-75">{timestamp}</span>
+      </div>
+      <p className="mt-0.5 text-[11px] opacity-90">{detail}</p>
+    </div>
+  );
+}
