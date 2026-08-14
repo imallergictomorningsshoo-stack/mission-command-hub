@@ -1,6 +1,6 @@
-// Real Web Serial link: port selection, packet ingestion, uplink commands.
+// Web Serial link to the ESP32 ground station: port selection, frame ingestion, uplink.
 import { useSyncExternalStore } from "react";
-import type { Packet } from "@/lib/telemetry";
+import { mergeFrame, parseFrame, type Sample } from "@/lib/frames";
 
 export type LinkStatus = "idle" | "connecting" | "connected" | "error";
 
@@ -8,27 +8,31 @@ export type LinkSnapshot = {
   status: LinkStatus;
   portLabel: string | null;
   baudRate: number;
-  packets: Packet[];
+  samples: Sample[];
+  frameCounts: { f1: number; f2: number; f3: number };
   raw: string[];
   sent: string[];
   error: string | null;
   lastPacketAt: number | null;
+  connectedAt: number | null;
   bytesIn: number;
   malformed: number;
 };
 
-const MAX_PACKETS = 2000;
-const MAX_RAW = 300;
+const MAX_SAMPLES = 2000;
+const MAX_RAW = 400;
 
 let snapshot: LinkSnapshot = {
   status: "idle",
   portLabel: null,
-  baudRate: 57600,
-  packets: [],
+  baudRate: 115200,
+  samples: [],
+  frameCounts: { f1: 0, f2: 0, f3: 0 },
   raw: [],
   sent: [],
   error: null,
   lastPacketAt: null,
+  connectedAt: null,
   bytesIn: 0,
   malformed: 0,
 };
@@ -57,75 +61,15 @@ export function isSerialSupported() {
   return typeof navigator !== "undefined" && "serial" in navigator;
 }
 
-function clock(t: number) {
-  const m = Math.floor(t / 60).toString().padStart(2, "0");
-  const s = Math.floor(t % 60).toString().padStart(2, "0");
-  return `T+${m}:${s}`;
-}
-
-const STATES: Packet["state"][] = ["IDLE", "ASCENT", "APOGEE", "DESCENT", "LANDED"];
-
-/**
- * Accepts either a JSON object per line or a CSV frame:
- * id,met_seconds,altitude,pressure,temperature,tilt,voltage,state
- */
-export function parsePacket(line: string, fallbackId: number): Packet | null {
-  const text = line.trim().replace(/^[\s>*$]+/, "");
-  if (!text) return null;
-
-  let f: Record<string, unknown> | null = null;
-  if (text.startsWith("{")) {
-    try {
-      f = JSON.parse(text) as Record<string, unknown>;
-    } catch {
-      return null;
-    }
-  }
-
-  const num = (v: unknown) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  };
-
-  let id: number, t: number, altitude: number, pressure: number;
-  let temperature: number, tilt: number, voltage: number, state: string;
-
-  if (f) {
-    id = num(f["id"] ?? f["packet"]) ?? fallbackId;
-    t = num(f["t"] ?? f["met"] ?? f["time"]) ?? 0;
-    altitude = num(f["altitude"] ?? f["alt"]) ?? 0;
-    pressure = num(f["pressure"] ?? f["pres"]) ?? 0;
-    temperature = num(f["temperature"] ?? f["temp"]) ?? 0;
-    tilt = num(f["tilt"]) ?? 0;
-    voltage = num(f["voltage"] ?? f["vbat"]) ?? 0;
-    state = String(f["state"] ?? "IDLE").toUpperCase();
-  } else {
-    const c = text.split(/[,;\t]/).map((s) => s.trim());
-    if (c.length < 7) return null;
-    const vals = c.slice(0, 7).map(num);
-    if (vals.some((v) => v === null)) return null;
-    const v = vals as number[];
-    id = v[0]!;
-    t = v[1]!;
-    altitude = v[2]!;
-    pressure = v[3]!;
-    temperature = v[4]!;
-    tilt = v[5]!;
-    voltage = v[6]!;
-    state = (c[7] ?? "IDLE").toUpperCase();
-  }
-
-  return {
-    id,
-    t,
-    time: clock(t),
-    altitude,
-    pressure,
-    temperature,
-    tilt,
-    voltage,
-    state: (STATES.includes(state as Packet["state"]) ? state : "IDLE") as Packet["state"],
-  };
+export function clearSession() {
+  set({
+    samples: [],
+    raw: [],
+    frameCounts: { f1: 0, f2: 0, f3: 0 },
+    bytesIn: 0,
+    malformed: 0,
+    lastPacketAt: null,
+  });
 }
 
 type SerialLike = {
@@ -142,7 +86,10 @@ let keepReading = false;
 
 export async function connectSerial(baudRate = snapshot.baudRate) {
   if (!isSerialSupported()) {
-    set({ status: "error", error: "Web Serial is unavailable in this browser. Use Chrome or Edge over HTTPS." });
+    set({
+      status: "error",
+      error: "Web Serial is unavailable in this browser. Use Chrome or Edge over HTTPS or localhost.",
+    });
     return;
   }
   try {
@@ -155,7 +102,16 @@ export async function connectSerial(baudRate = snapshot.baudRate) {
     const label = info.usbVendorId
       ? `USB ${info.usbVendorId.toString(16)}:${(info.usbProductId ?? 0).toString(16)} · ${baudRate} baud`
       : `Serial device · ${baudRate} baud`;
-    set({ status: "connected", portLabel: label, packets: [], raw: [], malformed: 0, bytesIn: 0 });
+    set({
+      status: "connected",
+      portLabel: label,
+      connectedAt: Date.now(),
+      samples: [],
+      frameCounts: { f1: 0, f2: 0, f3: 0 },
+      raw: [],
+      malformed: 0,
+      bytesIn: 0,
+    });
     keepReading = true;
     void readLoop();
   } catch (e) {
@@ -179,23 +135,33 @@ async function readLoop() {
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() ?? "";
-      const bytes = snapshot.bytesIn + value.byteLength;
+
+      let samples = snapshot.samples;
       let malformed = snapshot.malformed;
-      const nextPackets = snapshot.packets.slice();
-      const nextRaw = snapshot.raw.slice();
+      const counts = { ...snapshot.frameCounts };
+      const raw = snapshot.raw.slice();
+      let gotFrame = false;
+
       for (const line of lines) {
         if (!line.trim()) continue;
-        nextRaw.push(line.trim());
-        const p = parsePacket(line, nextPackets.length + 1);
-        if (p) nextPackets.push(p);
-        else malformed += 1;
+        raw.push(line.trim());
+        const frame = parseFrame(line, samples.length + 1);
+        if (frame) {
+          samples = mergeFrame(samples, frame, MAX_SAMPLES);
+          counts[`f${frame.frame}` as "f1" | "f2" | "f3"] += 1;
+          gotFrame = true;
+        } else {
+          malformed += 1;
+        }
       }
+
       set({
-        packets: nextPackets.slice(-MAX_PACKETS),
-        raw: nextRaw.slice(-MAX_RAW),
-        bytesIn: bytes,
+        samples,
+        frameCounts: counts,
+        raw: raw.slice(-MAX_RAW),
+        bytesIn: snapshot.bytesIn + value.byteLength,
         malformed,
-        lastPacketAt: nextPackets.length ? Date.now() : snapshot.lastPacketAt,
+        lastPacketAt: gotFrame ? Date.now() : snapshot.lastPacketAt,
       });
     }
   } catch (e) {
@@ -223,7 +189,7 @@ export async function disconnectSerial() {
     /* noop */
   }
   port = null;
-  set({ status: "idle", portLabel: null, error: null });
+  set({ status: "idle", portLabel: null, error: null, connectedAt: null });
 }
 
 export async function sendCommand(command: string) {
