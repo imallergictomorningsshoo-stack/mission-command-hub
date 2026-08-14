@@ -1,90 +1,78 @@
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Panel, PanelHeader } from "./panel";
-import type { Packet } from "@/lib/telemetry";
+import { cn } from "@/lib/utils";
 
+/** Lightweight SVG sparkline/area chart driven by live sensor values. */
 export function TelemetryChart({
-  title,
+  values,
+  label,
   unit,
-  dataKey,
-  data,
-  color = "var(--chart-1)",
-  height = 200,
+  tone = "signal",
+  height = 120,
+  className,
 }: {
-  title: string;
-  unit: string;
-  dataKey: keyof Packet;
-  data: Packet[];
-  color?: string;
+  values: number[];
+  label: string;
+  unit?: string;
+  tone?: "signal" | "ok" | "warn" | "accent";
   height?: number;
+  className?: string;
 }) {
-  const id = `grad-${String(dataKey)}`;
+  const stroke = {
+    signal: "var(--signal)",
+    ok: "var(--ok)",
+    warn: "var(--warn)",
+    accent: "var(--signal)",
+  }[tone];
+
+  const clean = values.filter((v) => Number.isFinite(v));
+  const min = clean.length ? Math.min(...clean) : 0;
+  const max = clean.length ? Math.max(...clean) : 1;
+  const span = max - min || 1;
+  const w = 100;
+  const points = clean.map((v, i) => {
+    const x = clean.length === 1 ? 0 : (i / (clean.length - 1)) * w;
+    const y = 100 - ((v - min) / span) * 100;
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  });
+
   return (
-    <Panel>
-      <PanelHeader
-        title={title}
-        hint={unit}
-        right={
-          <span className="numeric text-xs text-muted-foreground">
-            {data.length} pts
-          </span>
-        }
-      />
-      <div className="px-2 py-4" style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid stroke="var(--grid)" strokeDasharray="2 6" vertical={false} />
-            <XAxis
-              dataKey="time"
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
-              tickLine={false}
-              axisLine={false}
-              minTickGap={44}
-            />
-            <YAxis
-              width={44}
-              tick={{ fontSize: 10, fill: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
-              tickLine={false}
-              axisLine={false}
-              domain={["auto", "auto"]}
-            />
-            <Tooltip
-              cursor={{ stroke: color, strokeOpacity: 0.4 }}
-              contentStyle={{
-                background: "var(--popover)",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
-                fontFamily: "var(--font-mono)",
-                fontSize: 12,
-                color: "var(--popover-foreground)",
-              }}
-              labelStyle={{ color: "var(--muted-foreground)" }}
-            />
-            <Area
-              type="monotone"
-              dataKey={dataKey as string}
-              stroke={color}
-              strokeWidth={1.8}
-              fill={`url(#${id})`}
-              dot={false}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+    <div className={cn("px-4 py-3", className)}>
+      <div className="flex items-baseline justify-between">
+        <span className="label-caps">{label}</span>
+        <span className="numeric text-xs text-muted-foreground">
+          {clean.length ? `${clean[clean.length - 1]!.toFixed(2)} ${unit ?? ""}` : "no data"}
+        </span>
       </div>
-    </Panel>
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={{ height }}
+        className="mt-2 w-full"
+        role="img"
+        aria-label={`${label} trend`}
+      >
+        {clean.length > 1 ? (
+          <>
+            <polyline
+              points={`0,100 ${points.join(" ")} 100,100`}
+              fill={stroke}
+              opacity={0.12}
+              stroke="none"
+            />
+            <polyline
+              points={points.join(" ")}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={1.2}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+            />
+          </>
+        ) : null}
+      </svg>
+      <div className="numeric mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <span>min {clean.length ? min.toFixed(2) : "—"}</span>
+        <span>max {clean.length ? max.toFixed(2) : "—"}</span>
+      </div>
+    </div>
   );
 }
