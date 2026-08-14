@@ -1,30 +1,63 @@
 // Client-side file generation for CSV, JSON and printable PDF reports.
-import type { Packet } from "@/lib/telemetry";
+import type { Sample } from "@/lib/frames";
 
 const FIELDS = [
-  "id",
-  "met_seconds",
-  "met",
-  "altitude_m",
+  "packet",
+  "timestamp",
   "pressure_hpa",
   "temperature_c",
-  "tilt_deg",
-  "voltage_v",
-  "state",
+  "humidity_pct",
+  "density_kgm3",
+  "altitude_m",
+  "x",
+  "y",
+  "z",
+  "roll_deg",
+  "pitch_deg",
+  "yaw_deg",
+  "ax",
+  "ay",
+  "az",
+  "acceleration_ms2",
+  "velocity_ms",
 ] as const;
 
-export function toCsv(rows: Packet[]) {
+const cell = (v: number | null | string | undefined) =>
+  v === null || v === undefined ? "" : String(v);
+
+export function toCsv(rows: Sample[]) {
   const lines = [FIELDS.join(",")];
-  for (const p of rows) {
+  for (const s of rows) {
     lines.push(
-      [p.id, p.t, p.time, p.altitude, p.pressure, p.temperature, p.tilt, p.voltage, p.state].join(","),
+      [
+        s.packet,
+        s.timestamp,
+        s.pressure,
+        s.temperature,
+        s.humidity,
+        s.density,
+        s.altitude,
+        s.x,
+        s.y,
+        s.z,
+        s.roll,
+        s.pitch,
+        s.yaw,
+        s.ax,
+        s.ay,
+        s.az,
+        s.acceleration,
+        s.velocity,
+      ]
+        .map(cell)
+        .join(","),
     );
   }
   return lines.join("\n");
 }
 
-export function toJson(rows: Packet[], meta: Record<string, unknown>) {
-  return JSON.stringify({ meta, packetCount: rows.length, packets: rows }, null, 2);
+export function toJson(rows: Sample[], meta: Record<string, unknown>) {
+  return JSON.stringify({ meta, sampleCount: rows.length, samples: rows }, null, 2);
 }
 
 export function download(filename: string, content: string, mime: string) {
@@ -48,21 +81,23 @@ export function estimateSize(content: string) {
 export function printReport(opts: {
   title: string;
   summary: Array<[string, string]>;
-  rows: Packet[];
+  rows: Sample[];
 }) {
   const win = window.open("", "_blank", "width=900,height=1000");
   if (!win) return false;
   const summaryRows = opts.summary
     .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`)
     .join("");
+  const n = (v: number | null, d = 2) => (v === null ? "—" : v.toFixed(d));
   const dataRows = opts.rows
     .map(
-      (p) =>
-        `<tr><td>${p.id}</td><td>${p.time}</td><td>${p.altitude.toFixed(1)}</td><td>${p.pressure.toFixed(
-          2,
-        )}</td><td>${p.temperature.toFixed(2)}</td><td>${p.tilt.toFixed(1)}</td><td>${p.voltage.toFixed(
-          2,
-        )}</td><td>${p.state}</td></tr>`,
+      (s) =>
+        `<tr><td>${s.packet}</td><td>${s.timestamp}</td><td>${n(s.pressure)}</td><td>${n(
+          s.temperature,
+        )}</td><td>${n(s.humidity)}</td><td>${n(s.density, 4)}</td><td>${n(s.roll, 1)}</td><td>${n(
+          s.pitch,
+          1,
+        )}</td><td>${n(s.yaw, 1)}</td><td>${n(s.acceleration)}</td><td>${n(s.velocity)}</td></tr>`,
     )
     .join("");
   win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${opts.title}</title>
@@ -78,7 +113,7 @@ export function printReport(opts: {
   <h1>${opts.title}</h1>
   <p class="sub">Team Bhoonidi · Malaysian Rocket Competition 2026 · generated ${new Date().toUTCString()}</p>
   <table><tbody>${summaryRows}</tbody></table>
-  <table><thead><tr><th>PKT</th><th>MET</th><th>ALT (m)</th><th>PRES (hPa)</th><th>TEMP (°C)</th><th>TILT (°)</th><th>VBAT (V)</th><th>STATE</th></tr></thead><tbody>${dataRows}</tbody></table>
+  <table><thead><tr><th>PKT</th><th>TIME</th><th>P (hPa)</th><th>T (°C)</th><th>RH (%)</th><th>ρ (kg/m³)</th><th>ROLL</th><th>PITCH</th><th>YAW</th><th>A (m/s²)</th><th>V (m/s)</th></tr></thead><tbody>${dataRows}</tbody></table>
   </body></html>`);
   win.document.close();
   win.focus();
