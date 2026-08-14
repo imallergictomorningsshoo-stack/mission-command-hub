@@ -1,6 +1,7 @@
 // Real Web Serial link: port selection, packet ingestion, uplink commands.
 import { useSyncExternalStore } from "react";
 import type { Packet } from "@/lib/telemetry";
+import { mergeFrame, parseFrame, type Sample } from "@/lib/frames";
 
 export type LinkStatus = "idle" | "connecting" | "connected" | "error";
 
@@ -9,6 +10,8 @@ export type LinkSnapshot = {
   portLabel: string | null;
   baudRate: number;
   packets: Packet[];
+  samples: Sample[];
+  frameCounts: { f1: number; f2: number; f3: number };
   raw: string[];
   sent: string[];
   error: string | null;
@@ -25,6 +28,8 @@ let snapshot: LinkSnapshot = {
   portLabel: null,
   baudRate: 57600,
   packets: [],
+  samples: [],
+  frameCounts: { f1: 0, f2: 0, f3: 0 },
   raw: [],
   sent: [],
   error: null,
@@ -155,7 +160,16 @@ export async function connectSerial(baudRate = snapshot.baudRate) {
     const label = info.usbVendorId
       ? `USB ${info.usbVendorId.toString(16)}:${(info.usbProductId ?? 0).toString(16)} · ${baudRate} baud`
       : `Serial device · ${baudRate} baud`;
-    set({ status: "connected", portLabel: label, packets: [], raw: [], malformed: 0, bytesIn: 0 });
+    set({
+      status: "connected",
+      portLabel: label,
+      packets: [],
+      samples: [],
+      frameCounts: { f1: 0, f2: 0, f3: 0 },
+      raw: [],
+      malformed: 0,
+      bytesIn: 0,
+    });
     keepReading = true;
     void readLoop();
   } catch (e) {
@@ -182,20 +196,31 @@ async function readLoop() {
       const bytes = snapshot.bytesIn + value.byteLength;
       let malformed = snapshot.malformed;
       const nextPackets = snapshot.packets.slice();
+      let nextSamples = snapshot.samples;
+      const counts = { ...snapshot.frameCounts };
       const nextRaw = snapshot.raw.slice();
       for (const line of lines) {
         if (!line.trim()) continue;
         nextRaw.push(line.trim());
+        const frame = parseFrame(line, nextSamples.length + 1);
+        if (frame) {
+          nextSamples = mergeFrame(nextSamples, frame, MAX_PACKETS);
+          counts[`f${frame.frame}` as "f1" | "f2" | "f3"] += 1;
+          continue;
+        }
         const p = parsePacket(line, nextPackets.length + 1);
         if (p) nextPackets.push(p);
         else malformed += 1;
       }
       set({
         packets: nextPackets.slice(-MAX_PACKETS),
+        samples: nextSamples,
+        frameCounts: counts,
         raw: nextRaw.slice(-MAX_RAW),
         bytesIn: bytes,
         malformed,
-        lastPacketAt: nextPackets.length ? Date.now() : snapshot.lastPacketAt,
+        lastPacketAt:
+          nextPackets.length || nextSamples.length ? Date.now() : snapshot.lastPacketAt,
       });
     }
   } catch (e) {
